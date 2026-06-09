@@ -12,7 +12,7 @@ const globalForPrisma = globalThis as unknown as {
 const setupPrisma = () => {
   if (process.env.DATABASE_URL) {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const adapter = new PrismaNeon(pool);
+    const adapter = new PrismaNeon(pool as any);
     return new PrismaClient({ adapter, log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'] });
   }
   return new PrismaClient({ log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'] });
