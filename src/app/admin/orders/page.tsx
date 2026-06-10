@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 import Link from "next/link";
 import { Eye, Clock, CheckCircle, XCircle, Truck } from "lucide-react";
+import { DeleteOrderButton } from "./DeleteOrderButton";
 
 export default async function AdminOrders() {
   const orders = await sql`
@@ -62,10 +63,13 @@ export default async function AdminOrders() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Link href={`/admin/orders/${order.id}`} className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold hover:bg-slate-50 transition-colors">
-                      <Eye size={14} />
-                      View
-                    </Link>
+                    <div className="flex justify-end gap-2">
+                      <Link href={`/admin/orders/${order.id}`} className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-semibold hover:bg-slate-50 transition-colors">
+                        <Eye size={14} />
+                        View
+                      </Link>
+                      <DeleteOrderButton orderId={order.id} isIconOnly={true} />
+                    </div>
                   </td>
                 </tr>
               ))

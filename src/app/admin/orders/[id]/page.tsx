@@ -2,6 +2,7 @@ import { sql } from "@/lib/db";
 import Link from "next/link";
 import { ChevronLeft, Package, User, MapPin, Truck } from "lucide-react";
 import { OrderStatusSelect } from "./OrderStatusSelect";
+import { DeleteOrderButton } from "../DeleteOrderButton";
 
 export default async function AdminOrderDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -33,6 +34,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
         </div>
         <div className="flex items-center gap-3">
           <OrderStatusSelect orderId={order.id} initialStatus={order.status} />
+          <DeleteOrderButton orderId={order.id} />
         </div>
       </div>
 
