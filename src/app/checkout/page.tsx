@@ -87,7 +87,7 @@ export default function CheckoutPage() {
       setIsSubmitted(true);
       clearCart();
     } else {
-      alert("Something went wrong. Please try again.");
+      alert(result.error || "Something went wrong. Please try again.");
     }
     
     setIsPending(false);
