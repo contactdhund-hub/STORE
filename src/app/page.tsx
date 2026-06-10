@@ -55,7 +55,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   return (
     <div className="w-full flex flex-col items-center">
       {/* Hero Carousel Section */}
-      <HeroCarousel slides={slides} />
+      <HeroCarousel slides={slides as any} />
 
       <div className="w-full max-w-[1800px] px-4 sm:px-6 md:px-8 py-6 mb-16">
         {/* Category Header */}

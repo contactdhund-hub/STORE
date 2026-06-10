@@ -27,7 +27,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
     sizes: productSizes,
     colors: productColors,
     reviews,
-  };
+  } as any;
 
   // Get related products (any 3 products that aren't this one)
   const relatedRaw = await sql`
