@@ -15,11 +15,14 @@ interface OrderRow {
 
 export default async function AdminDashboard() {
   // Fetch data concurrently
-  const [productCountResult, orders, recentOrders] = await Promise.all([
+  const [productCountResult, ordersRaw, recentOrdersRaw] = await Promise.all([
     sql`SELECT COUNT(*) as count FROM "Product"`,
     sql`SELECT "totalAmount", "status", "createdAt" FROM "Order" WHERE "status" != 'CANCELLED'`,
     sql`SELECT "id", "orderId", "firstName", "lastName", "totalAmount", "status", "createdAt" FROM "Order" ORDER BY "createdAt" DESC LIMIT 5`
   ]);
+
+  const orders = ordersRaw as unknown as OrderRow[];
+  const recentOrders = recentOrdersRaw as unknown as OrderRow[];
 
   const productCount = parseInt(productCountResult[0].count);
   const totalOrders = orders.length;
