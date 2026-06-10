@@ -19,6 +19,15 @@ export async function deleteProduct(id: string) {
   revalidatePath("/admin/products");
 }
 
+export async function toggleProductStock(id: string, inStock: boolean) {
+  await requireAdmin();
+  const now = new Date().toISOString();
+  await sql`UPDATE "Product" SET "inStock" = ${inStock}, "updatedAt" = ${now} WHERE "id" = ${id}`;
+  revalidatePath("/");
+  revalidatePath("/admin/products");
+  revalidatePath(`/product/${id}`);
+}
+
 export async function createProduct(formData: FormData) {
   await requireAdmin();
   const priceStr = formData.get("price")?.toString();

@@ -2,22 +2,41 @@
 
 import Link from 'next/link';
 import { useCart } from '@/store/useCart';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { getCategories } from '@/actions/category';
 
 export function Header() {
   const { items, toggleCart } = useCart();
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 flex flex-col shadow-sm">
       {/* Top Bar */}
       <div className="w-full flex h-[60px] items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-4">
-          <button className="p-1 -ml-1 text-black hover:bg-gray-100 rounded-md transition-colors">
-            {/* Hamburger Icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-1 -ml-1 text-black hover:bg-gray-100 rounded-md transition-colors md:hidden"
+          >
+            {/* Hamburger / Close Icon */}
+            {isMobileMenuOpen ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            )}
           </button>
           <Link href="/" className="flex items-center">
             {/* Typography mimicking Outfitters logo style */}
@@ -26,10 +45,18 @@ export function Header() {
         </div>
         
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="hidden md:flex items-center border-b border-black pb-1 mr-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input type="text" placeholder="Search" className="text-xs focus:outline-none w-32 placeholder-black uppercase tracking-wider bg-transparent" />
-          </div>
+          <form onSubmit={handleSearch} className="hidden md:flex items-center border-b border-black pb-1 mr-4">
+            <button type="submit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search" 
+              className="text-xs focus:outline-none w-32 placeholder-black uppercase tracking-wider bg-transparent" 
+            />
+          </form>
           <button className="p-1 text-black hover:bg-gray-100 rounded-full transition-colors md:hidden">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </button>
@@ -59,6 +86,23 @@ export function Header() {
           <CategoryNav />
         </Suspense>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-lg py-4 px-4 flex flex-col gap-4 z-50">
+          <Link href="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-wider text-black border-b border-gray-100 pb-2">
+            Admin Dashboard
+          </Link>
+          <Link href="/track" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-wider text-black border-b border-gray-100 pb-2">
+            Track Order
+          </Link>
+          <div className="pt-2">
+            <Suspense fallback={null}>
+              <MobileCategoryNav closeMenu={() => setIsMobileMenuOpen(false)} />
+            </Suspense>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -93,5 +137,40 @@ function CategoryNav() {
         );
       })}
     </nav>
+  );
+}
+
+function MobileCategoryNav({ closeMenu }: { closeMenu: () => void }) {
+  const searchParams = useSearchParams();
+  const currentCategory = searchParams.get('category') || 'ALL';
+  const [categories, setCategories] = useState<string[]>(["ALL", "SKINNY", "SLIM", "LOOSE RELAXED", "STRAIGHT", "BALLOON", "BAGGY", "RELAXED", "CARROT", "SLIM CROPPED", "SKATER"]);
+
+  useEffect(() => {
+    getCategories().then((data) => {
+      if (data && data.length > 0) {
+        setCategories(["ALL", ...data.map(c => c.name)]);
+      }
+    });
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
+      <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Categories</h3>
+      {categories.map((cat) => {
+        const isActive = currentCategory.toUpperCase() === cat.toUpperCase();
+        return (
+          <Link 
+            key={cat} 
+            onClick={closeMenu}
+            href={cat === 'ALL' ? '/' : `/?category=${encodeURIComponent(cat)}`}
+            className={`text-sm font-bold tracking-widest uppercase transition-colors ${
+              isActive ? "text-black" : "text-gray-500"
+            }`}
+          >
+            {cat}
+          </Link>
+        );
+      })}
+    </div>
   );
 }

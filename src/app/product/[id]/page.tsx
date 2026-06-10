@@ -58,6 +58,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
     images: (rp.images || []).map((img: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => img.url),
     sizes: rp.sizes || [],
     colors: rp.colors || [],
+    inStock: rp.inStock !== false
   }));
 
   const mainImage = product.images[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop";

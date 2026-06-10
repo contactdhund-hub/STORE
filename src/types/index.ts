@@ -12,6 +12,7 @@ export interface Product {
   images: string[];
   sizes: string[];
   colors: ProductColor[];
+  inStock?: boolean;
 }
 
 export interface CartItem extends Product {

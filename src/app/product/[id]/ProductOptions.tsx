@@ -58,11 +58,12 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
               <button
                 key={size.id}
                 onClick={() => setSelectedSize(size.name)}
+                disabled={product.inStock === false}
                 className={`w-[52px] h-[42px] border rounded-md text-[11px] font-bold transition-all ${
                   selectedSize === size.name 
                     ? 'border-black text-black ring-1 ring-black' 
                     : 'border-gray-200 text-gray-500 hover:border-gray-400'
-                }`}
+                } ${product.inStock === false ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {size.name}
               </button>
@@ -96,9 +97,11 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
       {/* Buy Actions */}
       <div className="flex gap-3 mb-10 pb-10 border-b border-gray-100">
         <button 
+          disabled={product.inStock === false}
           onClick={() => {
+            if (product.inStock === false) return;
             addItem({
-              id: `${product.id}-${selectedSize}`,
+              id: `${product.id}-${selectedSize || 'OS'}`,
               productId: product.id,
               name: product.name,
               price: product.price,
@@ -106,11 +109,12 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
               size: selectedSize,
               image: product.images?.[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop"
             });
+            alert("Added to cart!");
           }}
-          className="flex-1 bg-black text-white h-[52px] rounded-md flex items-center justify-center gap-3 hover:bg-gray-800 transition-colors shadow-sm"
+          className={`flex-1 h-[52px] rounded-md flex items-center justify-center gap-3 transition-colors shadow-sm ${product.inStock === false ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-black text-white hover:bg-gray-800'}`}
         >
           <ShoppingBag size={16} />
-          <span className="text-[11px] font-bold tracking-[0.15em] uppercase">Add to Bag</span>
+          <span className="text-[11px] font-bold tracking-[0.15em] uppercase">{product.inStock === false ? 'Sold Out' : 'Add to Bag'}</span>
         </button>
         <button className="w-[52px] h-[52px] border border-gray-200 rounded-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-colors">
           <Heart size={20} />

@@ -20,15 +20,25 @@ export function ProductCard({ product }: ProductCardProps) {
         <img
           src={imageUrl}
           alt={product.name}
-          className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+          className={`absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out ${product.inStock === false ? 'opacity-50 grayscale hover:scale-100' : 'group-hover:scale-105'}`}
         />
+        
+        {product.inStock === false && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <span className="bg-white/90 text-black px-4 py-2 text-xs font-bold tracking-[0.2em] uppercase border border-gray-100 shadow-sm">
+              Out of Stock
+            </span>
+          </div>
+        )}
         
         {/* Add To Cart Hover Overlay */}
         <div className="absolute bottom-0 left-0 right-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
           <button 
+            disabled={product.inStock === false}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              if (product.inStock === false) return;
               
               // Get the first size or null
               const defaultSize = product.sizes && product.sizes.length > 0 
@@ -45,9 +55,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 image: imageUrl
               });
             }}
-            className="w-full bg-[#0a1128] text-white text-[11px] font-bold tracking-widest py-4 uppercase hover:bg-black transition-colors"
+            className={`w-full text-[11px] font-bold tracking-widest py-4 uppercase transition-colors ${product.inStock === false ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-[#0a1128] text-white hover:bg-black'}`}
           >
-            Add to Cart
+            {product.inStock === false ? 'Sold Out' : 'Add to Cart'}
           </button>
         </div>
       </div>
