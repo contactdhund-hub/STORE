@@ -3,19 +3,28 @@
 import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { z } from "zod";
+
+const CouponSchema = z.object({
+  code: z.string().min(1, "Coupon code is required").transform(val => val.trim().toUpperCase()),
+  discountType: z.enum(["PERCENTAGE", "FIXED"], { message: "Discount type is required" }),
+  discountValue: z.number().positive("Discount value must be a positive number")
+});
 
 export async function createCoupon(formData: FormData) {
   await requireAdmin();
 
-  const code = formData.get("code")?.toString().trim().toUpperCase();
-  const discountType = formData.get("discountType")?.toString();
-  const discountValueStr = formData.get("discountValue")?.toString();
-  
-  if (!code || !discountType || !discountValueStr) {
-    throw new Error("Missing required fields");
+  const parsed = CouponSchema.safeParse({
+    code: formData.get("code")?.toString() || "",
+    discountType: formData.get("discountType")?.toString(),
+    discountValue: parseFloat(formData.get("discountValue")?.toString() || "NaN")
+  });
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message);
   }
 
-  const discountValue = parseFloat(discountValueStr);
+  const { code, discountType, discountValue } = parsed.data;
   const now = new Date().toISOString();
 
   try {

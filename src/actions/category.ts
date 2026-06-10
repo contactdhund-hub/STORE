@@ -4,6 +4,11 @@ import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { unstable_cache } from "next/cache";
+import { z } from "zod";
+
+const CategorySchema = z.object({
+  name: z.string().min(1, "Category name is required").transform(val => val.trim().toUpperCase())
+});
 
 // Cache categories for 60 seconds — called on every page via Header
 const getCategoriesCached = unstable_cache(
@@ -29,8 +34,15 @@ export async function getCategories() {
 export async function createCategory(formData: FormData) {
   await requireAdmin();
 
-  const name = formData.get("name")?.toString().trim().toUpperCase();
-  if (!name) throw new Error("Category name is required");
+  const parsed = CategorySchema.safeParse({
+    name: formData.get("name")?.toString() || ""
+  });
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message);
+  }
+
+  const { name } = parsed.data;
 
   const now = new Date().toISOString();
 

@@ -4,6 +4,12 @@ import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { unstable_cache } from "next/cache";
+import { z } from "zod";
+
+const SettingsSchema = z.object({
+  shippingFee: z.number().min(0, "Shipping fee must be 0 or greater"),
+  freeShippingThreshold: z.number().min(0, "Free shipping threshold must be 0 or greater")
+});
 
 // Cache settings for 120 seconds — called on every storefront page
 const getStoreSettingsCached = unstable_cache(
@@ -35,8 +41,16 @@ export async function getStoreSettings() {
 export async function updateStoreSettings(formData: FormData) {
   await requireAdmin();
 
-  const shippingFee = parseFloat(formData.get("shippingFee")?.toString() || "250");
-  const freeShippingThreshold = parseFloat(formData.get("freeShippingThreshold")?.toString() || "2000");
+  const parsed = SettingsSchema.safeParse({
+    shippingFee: parseFloat(formData.get("shippingFee")?.toString() || "250"),
+    freeShippingThreshold: parseFloat(formData.get("freeShippingThreshold")?.toString() || "2000")
+  });
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message);
+  }
+
+  const { shippingFee, freeShippingThreshold } = parsed.data;
   const now = new Date().toISOString();
 
   await sql`

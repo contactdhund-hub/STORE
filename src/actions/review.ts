@@ -3,18 +3,31 @@
 import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { z } from "zod";
+
+const ReviewSchema = z.object({
+  productId: z.string().uuid("Invalid product ID"),
+  reviewerName: z.string().min(1, "Name is required"),
+  reviewerEmail: z.string().email("Invalid email address"),
+  rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating cannot exceed 5"),
+  comment: z.string().min(1, "Comment is required")
+});
 
 export async function submitReview(formData: FormData) {
   try {
-    const productId = formData.get("productId") as string;
-    const reviewerName = formData.get("reviewerName") as string;
-    const reviewerEmail = formData.get("reviewerEmail") as string;
-    const rating = parseInt(formData.get("rating") as string);
-    const comment = formData.get("comment") as string;
+    const parsed = ReviewSchema.safeParse({
+      productId: formData.get("productId"),
+      reviewerName: formData.get("reviewerName"),
+      reviewerEmail: formData.get("reviewerEmail"),
+      rating: parseInt(formData.get("rating") as string),
+      comment: formData.get("comment")
+    });
 
-    if (!productId || !reviewerName || !reviewerEmail || !rating || !comment) {
-      return { success: false, error: "All fields are required." };
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0].message };
     }
+
+    const { productId, reviewerName, reviewerEmail, rating, comment } = parsed.data;
 
     // VERIFICATION: Check if an Order exists with the provided email that contains this productId
     const purchaseCheck = await sql`
