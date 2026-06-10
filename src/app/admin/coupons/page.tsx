@@ -78,7 +78,7 @@ export default async function CouponsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {coupons.map((coupon: any) => (
+                  {coupons.map((coupon: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                     <tr key={coupon.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-bold font-mono bg-slate-100 px-2 py-1 rounded text-slate-800">

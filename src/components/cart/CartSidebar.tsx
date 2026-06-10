@@ -118,11 +118,11 @@ export function CartSidebar() {
               <div className="flex justify-between text-xs font-semibold mb-2">
                 {amountAway > 0 ? (
                   <span className="text-gray-600">
-                    You're <span className="text-black">Rs. {amountAway.toLocaleString()}</span> away from <span className="font-bold">Free Shipping!</span>
+                    You&apos;re <span className="text-black">Rs. {amountAway.toLocaleString()}</span> away from <span className="font-bold">Free Shipping!</span>
                   </span>
                 ) : (
                   <span className="text-green-600 font-bold">
-                    You've unlocked Free Shipping! 🎉
+                    You&apos;ve unlocked Free Shipping! 🎉
                   </span>
                 )}
               </div>

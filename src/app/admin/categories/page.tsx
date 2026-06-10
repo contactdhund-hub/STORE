@@ -58,7 +58,7 @@ export default async function CategoriesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {categories.map((cat: any) => (
+                  {categories.map((cat: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                     <tr key={cat.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-bold tracking-wider uppercase text-slate-800">

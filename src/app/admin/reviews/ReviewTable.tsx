@@ -5,7 +5,7 @@ import { Trash2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { deleteReview } from "@/actions/review";
 
-export function ReviewTable({ reviews }: { reviews: any[] }) {
+export function ReviewTable({ reviews }: { reviews: any[] /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {

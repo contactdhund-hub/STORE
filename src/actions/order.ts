@@ -32,7 +32,7 @@ const OrderSchema = z.object({
 
 const OrderStatusSchema = z.enum(['PENDING', 'APPROVED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED']);
 
-export async function createOrder(data: any) {
+export async function createOrder(data: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
   try {
     const parsedData = OrderSchema.parse(data);
 

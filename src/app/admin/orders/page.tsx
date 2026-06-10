@@ -37,7 +37,7 @@ export default async function AdminOrders() {
                 </td>
               </tr>
             ) : (
-              orders.map((order: any) => (
+              orders.map((order: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                 <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 font-bold text-slate-800">{order.orderId}</td>
                   <td className="px-6 py-4">

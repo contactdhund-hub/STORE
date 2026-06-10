@@ -3,6 +3,16 @@ import Link from "next/link";
 import { DollarSign, ShoppingBag, Package, TrendingUp, ArrowRight, CheckCircle, Clock, Truck, XCircle } from "lucide-react";
 import { DashboardChart } from "./DashboardChart";
 
+interface OrderRow {
+  id?: string;
+  orderId?: string;
+  firstName?: string;
+  lastName?: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string | Date;
+}
+
 export default async function AdminDashboard() {
   // Fetch data concurrently
   const [productCountResult, orders, recentOrders] = await Promise.all([
@@ -13,7 +23,7 @@ export default async function AdminDashboard() {
 
   const productCount = parseInt(productCountResult[0].count);
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
+  const totalRevenue = orders.reduce((sum: number, order: OrderRow) => sum + order.totalAmount, 0);
   const averageOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
   // Process data for the last 7 days chart
@@ -29,11 +39,11 @@ export default async function AdminDashboard() {
     nextDay.setDate(nextDay.getDate() + 1);
     
     const dayRevenue = orders
-      .filter((o: any) => {
+      .filter((o: OrderRow) => {
         const orderDate = new Date(o.createdAt);
         return orderDate >= day && orderDate < nextDay;
       })
-      .reduce((sum: number, order: any) => sum + order.totalAmount, 0);
+      .reduce((sum: number, order: OrderRow) => sum + order.totalAmount, 0);
       
     return {
       date: day.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -45,7 +55,7 @@ export default async function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Overview</h1>
-        <p className="text-sm text-slate-500 mt-1">Here's what's happening with your store today.</p>
+        <p className="text-sm text-slate-500 mt-1">Here&apos;s what&apos;s happening with your store today.</p>
       </div>
 
       {/* KPI Cards */}
@@ -118,7 +128,7 @@ export default async function AdminDashboard() {
               {recentOrders.length === 0 ? (
                 <div className="p-6 text-center text-sm text-slate-500">No orders yet.</div>
               ) : (
-                recentOrders.map((order: any) => (
+                recentOrders.map((order: OrderRow) => (
                   <Link href={`/admin/orders/${order.id}`} key={order.id} className="block p-4 hover:bg-slate-50 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-bold text-sm text-slate-800">{order.orderId}</span>

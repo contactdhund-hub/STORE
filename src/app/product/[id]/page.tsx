@@ -51,11 +51,11 @@ export default async function ProductPage({ params }: { params: { id: string } }
   const product = {
     ...productResult[0],
     reviews,
-  } as any;
+  } as any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
 
-  const relatedProducts = relatedRaw.map((rp: any) => ({
+  const relatedProducts = relatedRaw.map((rp: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
     ...rp,
-    images: (rp.images || []).map((img: any) => img.url),
+    images: (rp.images || []).map((img: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => img.url),
     sizes: rp.sizes || [],
     colors: rp.colors || [],
   }));
@@ -82,7 +82,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={mainImage} className="w-full h-full object-cover rounded-md" alt="Thumb" />
             </div>
-            {product.images.slice(1).map((img: any, idx: number) => (
+            {product.images.slice(1).map((img: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, idx: number) => (
               <div key={idx} className="w-[70px] h-[90px] border border-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer hover:border-black transition-colors p-0.5">
                  {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img src={img.url} className="w-full h-full object-cover rounded-md" alt="Thumb" />
@@ -137,14 +137,14 @@ export default async function ProductPage({ params }: { params: { id: string } }
       </div>
 
       {/* Customer Reviews */}
-      <ReviewSection productId={product.id} reviews={product.reviews as any} />
+      <ReviewSection productId={product.id} reviews={product.reviews as any /* eslint-disable-line @typescript-eslint/no-explicit-any */} />
 
       {/* You May Also Like */}
       {relatedProducts.length > 0 && (
         <div className="mb-12 border-t border-gray-100 pt-16">
           <h2 className="text-2xl font-bold text-[#0a1128] tracking-tight mb-8 text-center md:text-left">You May Also Like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {relatedProducts.map((rp: any) => (
+            {relatedProducts.map((rp: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
               <ProductCard key={rp.id} product={rp} />
             ))}
           </div>

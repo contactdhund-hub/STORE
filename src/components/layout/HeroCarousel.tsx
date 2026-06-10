@@ -19,7 +19,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   if (!slides || slides.length === 0) {
     return null; // Don't render anything if no slides are configured

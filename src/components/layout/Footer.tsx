@@ -9,8 +9,8 @@ export function Footer() {
         <div>
           <h4 className="font-medium mb-4 text-black">Shop</h4>
           <ul className="space-y-2 text-sm text-gray-500">
-            <li><a href="#" className="hover:text-black transition-colors">Men's</a></li>
-            <li><a href="#" className="hover:text-black transition-colors">Women's</a></li>
+            <li><a href="#" className="hover:text-black transition-colors">Men&apos;s</a></li>
+            <li><a href="#" className="hover:text-black transition-colors">Women&apos;s</a></li>
             <li><a href="#" className="hover:text-black transition-colors">Accessories</a></li>
             <li><a href="#" className="hover:text-black transition-colors">New Arrivals</a></li>
           </ul>

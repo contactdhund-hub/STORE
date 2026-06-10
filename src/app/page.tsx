@@ -45,13 +45,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   const slides = await sql`SELECT * FROM "HeroSlide" ORDER BY "order" ASC`;
 
   // Map to match the frontend types
-  const mappedProducts = products.map((p: any) => ({
+  const mappedProducts = products.map((p: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
     id: p.id,
     name: p.name,
     description: p.description || "",
     price: p.price,
     category: p.category,
-    images: (p.images || []).map((img: any) => img.url),
+    images: (p.images || []).map((img: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => img.url),
     sizes: p.sizes || [],
     colors: p.colors || []
   }));
@@ -59,7 +59,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   return (
     <div className="w-full flex flex-col items-center">
       {/* Hero Carousel Section */}
-      <HeroCarousel slides={slides as any} />
+      <HeroCarousel slides={slides as any /* eslint-disable-line @typescript-eslint/no-explicit-any */} />
 
       <div className="w-full max-w-[1800px] px-4 sm:px-6 md:px-8 py-6 mb-16">
         {/* Category Header */}

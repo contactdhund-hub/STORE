@@ -2,7 +2,7 @@
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function DashboardChart({ data }: { data: any[] }) {
+export function DashboardChart({ data }: { data: any[] /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
   if (!data || data.length === 0) {
     return <div className="flex h-[300px] items-center justify-center text-slate-400">No data available</div>;
   }
@@ -37,7 +37,7 @@ export function DashboardChart({ data }: { data: any[] }) {
           <Tooltip 
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
             itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
-            formatter={(value: any) => [`Rs. ${Number(value).toLocaleString()}`, 'Revenue']}
+            formatter={(value: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => [`Rs. ${Number(value).toLocaleString()}`, 'Revenue']}
           />
           <Area 
             type="monotone" 

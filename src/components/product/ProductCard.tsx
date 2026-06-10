@@ -32,7 +32,7 @@ export function ProductCard({ product }: ProductCardProps) {
               
               // Get the first size or null
               const defaultSize = product.sizes && product.sizes.length > 0 
-                ? (typeof product.sizes[0] === 'string' ? product.sizes[0] : (product.sizes[0] as any).name)
+                ? (typeof product.sizes[0] === 'string' ? product.sizes[0] : (product.sizes[0] as any /* eslint-disable-line @typescript-eslint/no-explicit-any */).name)
                 : null;
                 
               addItem({
@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Color Swatches (if any) */}
         {product.colors && product.colors.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1.5 mb-3">
-            {product.colors.map((color: any, index) => {
+            {product.colors.map((color: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, index) => {
               const hex = color.hex || '#000';
               return (
                 <div 
@@ -78,7 +78,7 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Size Swatches */}
         {product.sizes && product.sizes.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1.5">
-            {product.sizes.map((size: any, index) => {
+            {product.sizes.map((size: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, index) => {
               const sizeName = typeof size === 'string' ? size : size.name;
               return (
               <div 

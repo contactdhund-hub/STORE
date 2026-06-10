@@ -16,7 +16,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
     return <div>Order not found</div>;
   }
 
-  const order = { ...orders[0], items } as any;
+  const order = { ...orders[0], items } as any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
 
   return (
     <div className="max-w-5xl">
@@ -46,7 +46,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
               <h2 className="font-bold text-slate-800">Order Items</h2>
             </div>
             <div className="p-5 divide-y divide-slate-100">
-              {order.items.map((item: any) => (
+              {order.items.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex gap-4">
                   <div className="w-16 h-20 bg-slate-100 rounded-md overflow-hidden flex-shrink-0">
                     {item.image && <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />}

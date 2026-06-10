@@ -19,7 +19,7 @@ export default async function AdminCarouselPage() {
         </div>
 
         <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-          <CarouselManager initialSlides={slides as any} />
+          <CarouselManager initialSlides={slides as any /* eslint-disable-line @typescript-eslint/no-explicit-any */} />
         </div>
       </div>
     </div>

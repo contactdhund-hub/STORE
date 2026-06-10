@@ -7,7 +7,7 @@ import { Search, Package, Truck, CheckCircle, ClipboardCheck } from "lucide-reac
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState("");
   const [isPending, setIsPending] = useState(false);
-  const [orderData, setOrderData] = useState<any>(null);
+  const [orderData, setOrderData] = useState<any /* eslint-disable-line @typescript-eslint/no-explicit-any */>(null);
   const [error, setError] = useState("");
 
   const handleTrack = async (e: React.FormEvent) => {

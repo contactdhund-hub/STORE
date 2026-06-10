@@ -101,7 +101,7 @@ export default function CheckoutPage() {
         </div>
         <h1 className="text-3xl font-bold mb-4">Order Confirmed!</h1>
         <p className="text-gray-600 mb-2 max-w-md">
-          Thank you for your purchase. We've received your order and will email you the receipt and tracking details shortly.
+          Thank you for your purchase. We&apos;ve received your order and will email you the receipt and tracking details shortly.
         </p>
         <div className="bg-gray-50 border border-gray-200 px-6 py-4 rounded-md mb-8">
           <p className="text-sm text-gray-500 uppercase tracking-widest mb-1">Order Number</p>
@@ -121,7 +121,7 @@ export default function CheckoutPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-20 text-center min-h-[60vh] flex flex-col justify-center items-center">
         <h1 className="text-3xl font-bold mb-4">Your Bag is Empty</h1>
-        <p className="text-gray-600 mb-8">You haven't added any items to checkout yet.</p>
+        <p className="text-gray-600 mb-8">You haven&apos;t added any items to checkout yet.</p>
         <Link 
           href="/"
           className="bg-black text-white px-8 py-3 rounded-md font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors"

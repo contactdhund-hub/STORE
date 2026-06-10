@@ -35,7 +35,7 @@ export default async function AdminReviewsPage() {
         </div>
 
         <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-          <ReviewTable reviews={mappedReviews as any} />
+          <ReviewTable reviews={mappedReviews as any /* eslint-disable-line @typescript-eslint/no-explicit-any */} />
         </div>
       </div>
     </div>

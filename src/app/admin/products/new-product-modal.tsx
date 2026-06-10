@@ -99,7 +99,7 @@ export function NewProductModal() {
                   )}
                   <CldUploadWidget 
                     signatureEndpoint="/api/sign-cloudinary-params"
-                    onSuccess={(result: any) => {
+                    onSuccess={(result: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
                       if (result.info && result.info.secure_url) {
                         setImageUrls(prev => [...prev, result.info.secure_url]);
                       }

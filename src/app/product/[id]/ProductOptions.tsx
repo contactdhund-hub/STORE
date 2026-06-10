@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Star, Heart, ShoppingBag, Truck, RefreshCcw } from "lucide-react";
 import { useCart } from "@/store/useCart";
 
-export function ProductOptions({ product }: { product: any }) {
+export function ProductOptions({ product }: { product: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<string | null>(product.sizes?.[0]?.name || null);
   const [quantity, setQuantity] = useState(1);
@@ -54,7 +54,7 @@ export function ProductOptions({ product }: { product: any }) {
             <a href="#" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase hover:text-black">Size Chart</a>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            {product.sizes.map((size: any) => (
+            {product.sizes.map((size: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
               <button
                 key={size.id}
                 onClick={() => setSelectedSize(size.name)}

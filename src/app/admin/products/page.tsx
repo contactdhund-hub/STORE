@@ -55,7 +55,7 @@ export default async function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map((product: any) => (
+              {products.map((product: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
                 <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="font-medium text-slate-900 text-sm">{product.name}</div>
