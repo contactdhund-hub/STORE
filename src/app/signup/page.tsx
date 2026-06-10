@@ -1,43 +1,57 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { registerUser } from "@/actions/auth";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("password", password);
 
-    if (res?.error) {
-      setError("Invalid email or password.");
+    const res = await registerUser(formData);
+
+    if (res.error) {
+      setError(res.error);
+      setIsLoading(false);
     } else {
-      router.push("/profile");
-      router.refresh();
+      // Auto login after signup
+      const loginRes = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (loginRes?.error) {
+         router.push("/login?registered=true");
+      } else {
+         router.push("/profile");
+         router.refresh();
+      }
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-[calc(100vh-60px)] items-center justify-center bg-[#f9fafb] px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8 bg-white p-10 shadow-2xl rounded-2xl border border-gray-100">
         <div>
           <h2 className="mt-2 text-center text-3xl font-extrabold tracking-tight text-gray-900">
-            Welcome Back
+            Create an Account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-500">
-            Sign in to track orders or manage your account
+            Join to track your orders and checkout faster
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -57,8 +71,9 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                minLength={6}
                 className="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-black focus:outline-none focus:ring-black sm:text-sm transition-colors"
-                placeholder="Password"
+                placeholder="Password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -68,15 +83,16 @@ export default function LoginPage() {
           <div>
             <button
               type="submit"
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-black px-4 py-3 text-sm font-bold tracking-wide text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all shadow-md hover:shadow-lg"
+              disabled={isLoading}
+              className="group relative flex w-full justify-center rounded-md border border-transparent bg-black px-4 py-3 text-sm font-bold tracking-wide text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
             >
-              Sign in
+              {isLoading ? "Creating account..." : "Sign up"}
             </button>
           </div>
           <div className="text-center text-sm">
-            <span className="text-gray-500">Don't have an account? </span>
-            <Link href="/signup" className="font-medium text-black hover:underline">
-              Create one
+            <span className="text-gray-500">Already have an account? </span>
+            <Link href="/login" className="font-medium text-black hover:underline">
+              Log in
             </Link>
           </div>
         </form>

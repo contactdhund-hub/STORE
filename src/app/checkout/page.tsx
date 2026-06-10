@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { createOrder } from "@/actions/order";
 import { getStoreSettings } from "@/actions/settings";
 import { validateCoupon } from "@/actions/coupon";
+import { getSession } from "next-auth/react";
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCart();
@@ -17,10 +18,17 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{code: string, type: string, value: number} | null>(null);
   const [couponError, setCouponError] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
     getStoreSettings().then(settings => {
       setShippingConfig({ fee: settings.shippingFee, threshold: settings.freeShippingThreshold });
+    }).catch(console.error);
+
+    getSession().then(session => {
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+      }
     }).catch(console.error);
   }, []);
 
@@ -151,7 +159,7 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                  <input type="email" name="email" required className="w-full border border-gray-300 rounded-md p-3 focus:ring-black focus:border-black transition-colors" placeholder="you@example.com" />
+                  <input type="email" name="email" required defaultValue={userEmail} className="w-full border border-gray-300 rounded-md p-3 focus:ring-black focus:border-black transition-colors" placeholder="you@example.com" />
                 </div>
               </div>
             </section>
