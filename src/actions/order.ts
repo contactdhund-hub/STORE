@@ -111,9 +111,13 @@ export async function deleteOrder(id: string) {
 export async function trackOrder(orderId: string) {
   try {
     const rows = await sql`
-      SELECT "orderId", "status", "createdAt", "totalAmount", "firstName"
-      FROM "Order"
-      WHERE "orderId" = ${orderId}
+      SELECT 
+        o."orderId", o."status", o."createdAt", o."totalAmount", o."firstName",
+        COALESCE(json_agg(DISTINCT jsonb_build_object('productName', oi."productName", 'quantity', oi."quantity", 'size', oi."size", 'image', oi."image")) FILTER (WHERE oi."id" IS NOT NULL), '[]') as items
+      FROM "Order" o
+      LEFT JOIN "OrderItem" oi ON oi."orderId" = o."id"
+      WHERE o."orderId" = ${orderId}
+      GROUP BY o."id"
       LIMIT 1
     `;
 

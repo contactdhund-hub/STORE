@@ -180,6 +180,29 @@ export default function TrackOrderPage() {
                 <p className="font-black text-xl text-[#0a1128]">Rs. {orderData.totalAmount.toLocaleString()}</p>
               </div>
             </div>
+            <div className="mt-8 border-t border-gray-100 pt-8">
+              <h3 className="text-lg font-bold mb-4">Items Ordered</h3>
+              <div className="space-y-4">
+                {orderData.items && orderData.items.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, idx: number) => (
+                  <div key={idx} className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+                    {item.image && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.image} alt={item.productName} className="w-16 h-16 object-cover rounded-md" />
+                    )}
+                    <div className="flex-1">
+                      <p className="font-bold text-[#0a1128]">{item.productName}</p>
+                      <p className="text-sm text-gray-500">Qty: {item.quantity} {item.size && `• Size: ${item.size}`}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-10 text-center">
+              <a href="/" className="inline-flex items-center justify-center bg-white border-2 border-black text-black px-8 py-3 rounded-lg font-bold hover:bg-gray-50 transition-colors">
+                Back to Store
+              </a>
+            </div>
           </div>
         )}
       </div>

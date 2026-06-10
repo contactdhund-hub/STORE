@@ -18,9 +18,14 @@ export default async function ProfilePage() {
 
   // Fetch orders linked to this email
   const orders = await sql`
-    SELECT * FROM "Order" 
-    WHERE "email" = ${session.user.email} 
-    ORDER BY "createdAt" DESC
+    SELECT 
+      o.*,
+      COALESCE(json_agg(DISTINCT jsonb_build_object('productName', oi."productName", 'quantity', oi."quantity", 'image', oi."image")) FILTER (WHERE oi."id" IS NOT NULL), '[]') as items
+    FROM "Order" o
+    LEFT JOIN "OrderItem" oi ON oi."orderId" = o."id"
+    WHERE o."email" = ${session.user.email} 
+    GROUP BY o."id"
+    ORDER BY o."createdAt" DESC
   `;
 
   return (
@@ -54,6 +59,7 @@ export default async function ProfilePage() {
                 <tr>
                   <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider text-gray-500">ORDER ID</th>
                   <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider text-gray-500">DATE</th>
+                  <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider text-gray-500">ITEMS</th>
                   <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider text-gray-500">TOTAL</th>
                   <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider text-gray-500">STATUS</th>
                 </tr>
@@ -68,6 +74,16 @@ export default async function ProfilePage() {
                       {new Date(order.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric', month: 'short', day: 'numeric'
                       })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex -space-x-2 overflow-hidden">
+                        {order.items && order.items.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, idx: number) => (
+                          <div key={idx} className="relative inline-block h-8 w-8 rounded-full border-2 border-white" title={`${item.quantity}x ${item.productName}`}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img className="h-full w-full rounded-full object-cover" src={item.image || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop"} alt={item.productName} />
+                          </div>
+                        ))}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-gray-900 font-medium text-sm">
                       Rs {order.totalAmount.toLocaleString()}
@@ -89,6 +105,12 @@ export default async function ProfilePage() {
             </table>
           </div>
         )}
+      </div>
+
+      <div className="mt-12 text-center">
+        <a href="/" className="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-50 hover:text-black transition-colors shadow-sm">
+          Continue Shopping
+        </a>
       </div>
     </div>
   );
