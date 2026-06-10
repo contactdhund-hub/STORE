@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { SidebarNav } from "./sidebar-nav";
+import { MobileNav } from "./MobileNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -17,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen bg-[#f8f9fc] text-slate-900 font-sans">
       {/* Sidebar */}
-      <aside className="w-[260px] bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0">
+      <aside className="hidden md:flex w-[260px] bg-white border-r border-slate-200 flex-col h-screen sticky top-0 shrink-0 z-20">
         <div className="p-5 flex items-center gap-2 border-b border-slate-100">
           <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center text-white font-bold text-lg">
             T
@@ -48,8 +49,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header */}
-        <header className="h-[60px] bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
-          <div className="flex-1"></div>
+        <header className="h-[60px] bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
+          <div className="flex-1 flex items-center">
+            <MobileNav />
+          </div>
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               View Store
@@ -58,7 +61,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
           {children}
         </main>
       </div>
