@@ -15,7 +15,7 @@ export default async function AdminOrderDetails({ params }: { params: Promise<{ 
     return <div>Order not found</div>;
   }
 
-  const order = { ...orders[0], items };
+  const order = { ...orders[0], items } as any;
 
   return (
     <div className="max-w-5xl">
