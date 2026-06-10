@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
@@ -17,42 +17,34 @@ export async function submitReview(formData: FormData) {
     }
 
     // VERIFICATION: Check if an Order exists with the provided email that contains this productId
-    // Note: If you wanted to check for strictly "DELIVERED", add `status: "DELIVERED"` to the order where clause.
-    const hasPurchased = await db.orderItem.findFirst({
-      where: {
-        productId: productId,
-        order: {
-          email: reviewerEmail,
-        }
-      }
-    });
+    const purchaseCheck = await sql`
+      SELECT oi."id" FROM "OrderItem" oi
+      INNER JOIN "Order" o ON o."id" = oi."orderId"
+      WHERE oi."productId" = ${productId} AND o."email" = ${reviewerEmail}
+      LIMIT 1
+    `;
 
-    if (!hasPurchased) {
+    if (purchaseCheck.length === 0) {
       return { success: false, error: "You can only review products that you have purchased." };
     }
 
     // Check if they already reviewed it to prevent duplicates
-    const existingReview = await db.review.findFirst({
-      where: {
-        productId,
-        reviewerEmail
-      }
-    });
+    const existingReview = await sql`
+      SELECT "id" FROM "Review"
+      WHERE "productId" = ${productId} AND "reviewerEmail" = ${reviewerEmail}
+      LIMIT 1
+    `;
 
-    if (existingReview) {
+    if (existingReview.length > 0) {
       return { success: false, error: "You have already reviewed this product." };
     }
 
     // Create Review
-    await db.review.create({
-      data: {
-        productId,
-        reviewerName,
-        reviewerEmail,
-        rating,
-        comment
-      }
-    });
+    const now = new Date().toISOString();
+    await sql`
+      INSERT INTO "Review" ("id", "rating", "comment", "reviewerName", "reviewerEmail", "productId", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${rating}, ${comment}, ${reviewerName}, ${reviewerEmail}, ${productId}, ${now}, ${now})
+    `;
 
     revalidatePath(`/product/${productId}`);
     return { success: true };
@@ -65,14 +57,16 @@ export async function submitReview(formData: FormData) {
 export async function deleteReview(id: string) {
   try {
     await requireAdmin();
-    const review = await db.review.delete({
-      where: { id }
-    });
+    const rows = await sql`
+      DELETE FROM "Review" WHERE "id" = ${id} RETURNING "productId"
+    `;
     
-    // Revalidate admin page
-    revalidatePath('/admin/reviews');
-    // Revalidate product page
-    revalidatePath(`/product/${review.productId}`);
+    if (rows.length > 0) {
+      // Revalidate admin page
+      revalidatePath('/admin/reviews');
+      // Revalidate product page
+      revalidatePath(`/product/${rows[0].productId}`);
+    }
     
     return { success: true };
   } catch (error) {

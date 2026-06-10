@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import Link from "next/link";
 import { ChevronLeft, Package, User, MapPin, Truck } from "lucide-react";
 import { OrderStatusSelect } from "./OrderStatusSelect";
@@ -6,14 +6,16 @@ import { OrderStatusSelect } from "./OrderStatusSelect";
 export default async function AdminOrderDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   
-  const order = await db.order.findUnique({
-    where: { id: resolvedParams.id },
-    include: { items: true }
-  });
+  const [orders, items] = await Promise.all([
+    sql`SELECT * FROM "Order" WHERE "id" = ${resolvedParams.id} LIMIT 1`,
+    sql`SELECT * FROM "OrderItem" WHERE "orderId" = ${resolvedParams.id}`,
+  ]);
 
-  if (!order) {
+  if (orders.length === 0) {
     return <div>Order not found</div>;
   }
+
+  const order = { ...orders[0], items };
 
   return (
     <div className="max-w-5xl">

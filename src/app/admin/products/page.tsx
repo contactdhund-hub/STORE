@@ -1,12 +1,12 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { deleteProduct } from "@/actions/product";
 import { NewProductModal } from "./new-product-modal";
 import { Search, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function AdminProducts() {
-  const products = await db.product.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  const products = await sql`
+    SELECT * FROM "Product" ORDER BY "createdAt" DESC
+  `;
 
   return (
     <div className="max-w-[1400px] mx-auto">
@@ -55,7 +55,7 @@ export default async function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map(product => (
+              {products.map((product: any) => (
                 <tr key={product.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="font-medium text-slate-900 text-sm">{product.name}</div>

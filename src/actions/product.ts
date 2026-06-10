@@ -1,12 +1,12 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
 export async function deleteProduct(id: string) {
   await requireAdmin();
-  await db.product.delete({ where: { id } });
+  await sql`DELETE FROM "Product" WHERE "id" = ${id}`;
   revalidatePath("/");
   revalidatePath("/admin/products");
 }
@@ -46,23 +46,38 @@ export async function createProduct(formData: FormData) {
       }).filter(c => c.name)
     : [];
 
-  await db.product.create({
-    data: {
-      name,
-      description,
-      price,
-      category,
-      images: {
-        create: images.map(url => ({ url }))
-      },
-      sizes: {
-        create: sizes.map(name => ({ name }))
-      },
-      colors: {
-        create: colors.map(c => ({ name: c.name, hex: c.hex }))
-      }
-    }
-  });
+  const now = new Date().toISOString();
+
+  // Create the product
+  const [product] = await sql`
+    INSERT INTO "Product" ("id", "name", "description", "price", "category", "createdAt", "updatedAt")
+    VALUES (gen_random_uuid(), ${name}, ${description}, ${price}, ${category}, ${now}, ${now})
+    RETURNING "id"
+  `;
+
+  // Insert images
+  for (const url of images) {
+    await sql`
+      INSERT INTO "ProductImage" ("id", "url", "productId")
+      VALUES (gen_random_uuid(), ${url}, ${product.id})
+    `;
+  }
+
+  // Insert sizes
+  for (const sizeName of sizes) {
+    await sql`
+      INSERT INTO "ProductSize" ("id", "name", "productId")
+      VALUES (gen_random_uuid(), ${sizeName}, ${product.id})
+    `;
+  }
+
+  // Insert colors
+  for (const color of colors) {
+    await sql`
+      INSERT INTO "ProductColor" ("id", "name", "hex", "productId")
+      VALUES (gen_random_uuid(), ${color.name}, ${color.hex}, ${product.id})
+    `;
+  }
 
   revalidatePath("/");
   revalidatePath("/admin/products");

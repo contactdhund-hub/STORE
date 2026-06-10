@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ProductOptions } from "./ProductOptions";
 import Link from "next/link";
@@ -8,30 +8,47 @@ import { ReviewSection } from "@/components/product/ReviewSection";
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const { id } = await params;
   
-  const product = await db.product.findUnique({
-    where: { id },
-    include: {
-      images: true,
-      sizes: true,
-      colors: true,
-      reviews: {
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }
-    }
-  });
+  // Fetch product and all its relations in parallel
+  const [products, productImages, productSizes, productColors, reviews] = await Promise.all([
+    sql`SELECT * FROM "Product" WHERE "id" = ${id} LIMIT 1`,
+    sql`SELECT * FROM "ProductImage" WHERE "productId" = ${id}`,
+    sql`SELECT * FROM "ProductSize" WHERE "productId" = ${id}`,
+    sql`SELECT * FROM "ProductColor" WHERE "productId" = ${id}`,
+    sql`SELECT * FROM "Review" WHERE "productId" = ${id} ORDER BY "createdAt" DESC`,
+  ]);
 
-  if (!product) {
+  if (products.length === 0) {
     notFound();
   }
 
-  // Get related products (mocked by just fetching any 3 products)
-  const relatedProducts = await db.product.findMany({
-    where: { id: { not: id } },
-    take: 3,
-    include: { sizes: true, images: true, colors: true }
-  });
+  const product = {
+    ...products[0],
+    images: productImages,
+    sizes: productSizes,
+    colors: productColors,
+    reviews,
+  };
+
+  // Get related products (any 3 products that aren't this one)
+  const relatedRaw = await sql`
+    SELECT * FROM "Product" WHERE "id" != ${id} LIMIT 3
+  `;
+
+  let relatedProducts: any[] = [];
+  if (relatedRaw.length > 0) {
+    const relatedIds = relatedRaw.map(r => r.id);
+    const [relImages, relSizes, relColors] = await Promise.all([
+      sql`SELECT * FROM "ProductImage" WHERE "productId" = ANY(${relatedIds})`,
+      sql`SELECT * FROM "ProductSize" WHERE "productId" = ANY(${relatedIds})`,
+      sql`SELECT * FROM "ProductColor" WHERE "productId" = ANY(${relatedIds})`,
+    ]);
+    relatedProducts = relatedRaw.map(rp => ({
+      ...rp,
+      images: relImages.filter(img => img.productId === rp.id).map(img => img.url),
+      sizes: relSizes.filter(s => s.productId === rp.id).map(s => s.name),
+      colors: relColors.filter(c => c.productId === rp.id).map(c => ({ name: c.name, hex: c.hex })),
+    }));
+  }
 
   const mainImage = product.images[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop";
 
@@ -55,7 +72,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={mainImage} className="w-full h-full object-cover rounded-md" alt="Thumb" />
             </div>
-            {product.images.slice(1).map((img, idx) => (
+            {product.images.slice(1).map((img: any, idx: number) => (
               <div key={idx} className="w-[70px] h-[90px] border border-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer hover:border-black transition-colors p-0.5">
                  {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img src={img.url} className="w-full h-full object-cover rounded-md" alt="Thumb" />
@@ -118,12 +135,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <h2 className="text-2xl font-bold text-[#0a1128] tracking-tight mb-8 text-center md:text-left">You May Also Like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {relatedProducts.map((rp: any) => (
-              <ProductCard key={rp.id} product={{
-                ...rp, 
-                sizes: rp.sizes.map((s: any) => s.name) as any, 
-                colors: rp.colors as any,
-                images: rp.images.map((img: any) => img.url)
-              }} />
+              <ProductCard key={rp.id} product={rp} />
             ))}
           </div>
         </div>

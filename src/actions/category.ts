@@ -1,14 +1,14 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
 export async function getCategories() {
   try {
-    const categories = await db.category.findMany({
-      orderBy: { createdAt: "asc" }
-    });
+    const categories = await sql`
+      SELECT * FROM "Category" ORDER BY "createdAt" ASC
+    `;
     return categories;
   } catch (error) {
     console.error("Failed to fetch categories:", error);
@@ -22,10 +22,13 @@ export async function createCategory(formData: FormData) {
   const name = formData.get("name")?.toString().trim().toUpperCase();
   if (!name) throw new Error("Category name is required");
 
+  const now = new Date().toISOString();
+
   try {
-    await db.category.create({
-      data: { name }
-    });
+    await sql`
+      INSERT INTO "Category" ("id", "name", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${name}, ${now}, ${now})
+    `;
     revalidatePath("/admin/categories");
     revalidatePath("/");
   } catch (error) {
@@ -37,9 +40,7 @@ export async function createCategory(formData: FormData) {
 export async function deleteCategory(id: string) {
   await requireAdmin();
 
-  await db.category.delete({
-    where: { id }
-  });
+  await sql`DELETE FROM "Category" WHERE "id" = ${id}`;
   revalidatePath("/admin/categories");
   revalidatePath("/");
 }

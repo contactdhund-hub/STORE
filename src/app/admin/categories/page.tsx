@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { createCategory, deleteCategory } from "@/actions/category";
 import { Trash2, Plus, List } from "lucide-react";
 
@@ -13,9 +13,9 @@ async function handleDelete(formData: FormData) {
 }
 
 export default async function CategoriesPage() {
-  const categories = await db.category.findMany({
-    orderBy: { createdAt: "asc" }
-  });
+  const categories = await sql`
+    SELECT * FROM "Category" ORDER BY "createdAt" ASC
+  `;
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -58,7 +58,7 @@ export default async function CategoriesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {categories.map((cat) => (
+                  {categories.map((cat: any) => (
                     <tr key={cat.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-bold tracking-wider uppercase text-slate-800">

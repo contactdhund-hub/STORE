@@ -1,23 +1,11 @@
-import { PrismaClient } from '@prisma/client';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import ws from 'ws';
+import { neon } from '@neondatabase/serverless';
 
-neonConfig.webSocketConstructor = ws;
+const databaseUrl = process.env.DATABASE_URL;
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+if (!databaseUrl) {
+  throw new Error(
+    'DATABASE_URL environment variable is not set. Please add it to your .env file.'
+  );
+}
 
-const setupPrisma = () => {
-  if (process.env.DATABASE_URL) {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const adapter = new PrismaNeon(pool as any);
-    return new PrismaClient({ adapter, log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'] });
-  }
-  return new PrismaClient({ log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'] });
-};
-
-export const db = globalForPrisma.prisma ?? setupPrisma();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db;
+export const sql = neon(databaseUrl);

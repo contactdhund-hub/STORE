@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
@@ -16,16 +16,13 @@ export async function createCoupon(formData: FormData) {
   }
 
   const discountValue = parseFloat(discountValueStr);
+  const now = new Date().toISOString();
 
   try {
-    await db.coupon.create({
-      data: {
-        code,
-        discountType,
-        discountValue,
-        isActive: true,
-      }
-    });
+    await sql`
+      INSERT INTO "Coupon" ("id", "code", "discountType", "discountValue", "isActive", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${code}, ${discountType}, ${discountValue}, true, ${now}, ${now})
+    `;
   } catch (error) {
     console.error(error);
     throw new Error("Coupon code might already exist");
@@ -37,28 +34,26 @@ export async function createCoupon(formData: FormData) {
 export async function deleteCoupon(id: string) {
   await requireAdmin();
 
-  await db.coupon.delete({ where: { id } });
+  await sql`DELETE FROM "Coupon" WHERE "id" = ${id}`;
   revalidatePath("/admin/coupons");
 }
 
 export async function toggleCouponStatus(id: string, isActive: boolean) {
   await requireAdmin();
+  const now = new Date().toISOString();
 
-  await db.coupon.update({
-    where: { id },
-    data: { isActive }
-  });
+  await sql`UPDATE "Coupon" SET "isActive" = ${isActive}, "updatedAt" = ${now} WHERE "id" = ${id}`;
   revalidatePath("/admin/coupons");
 }
 
 export async function validateCoupon(code: string) {
-  const coupon = await db.coupon.findUnique({
-    where: { code: code.toUpperCase() }
-  });
+  const rows = await sql`
+    SELECT * FROM "Coupon" WHERE "code" = ${code.toUpperCase()} LIMIT 1
+  `;
 
-  if (!coupon || !coupon.isActive) {
+  if (rows.length === 0 || !rows[0].isActive) {
     return { valid: false, error: "Invalid or expired coupon code." };
   }
 
-  return { valid: true, coupon };
+  return { valid: true, coupon: rows[0] };
 }

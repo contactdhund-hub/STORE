@@ -1,25 +1,19 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import Link from "next/link";
 import { DollarSign, ShoppingBag, Package, TrendingUp, ArrowRight, CheckCircle, Clock, Truck, XCircle } from "lucide-react";
 import { DashboardChart } from "./DashboardChart";
 
 export default async function AdminDashboard() {
   // Fetch data concurrently
-  const [productCount, orders, recentOrders] = await Promise.all([
-    db.product.count(),
-    db.order.findMany({
-      select: { totalAmount: true, status: true, createdAt: true },
-      where: { status: { not: "CANCELLED" } }
-    }),
-    db.order.findMany({
-      take: 5,
-      orderBy: { createdAt: "desc" },
-      select: { id: true, orderId: true, firstName: true, lastName: true, totalAmount: true, status: true, createdAt: true }
-    })
+  const [productCountResult, orders, recentOrders] = await Promise.all([
+    sql`SELECT COUNT(*) as count FROM "Product"`,
+    sql`SELECT "totalAmount", "status", "createdAt" FROM "Order" WHERE "status" != 'CANCELLED'`,
+    sql`SELECT "id", "orderId", "firstName", "lastName", "totalAmount", "status", "createdAt" FROM "Order" ORDER BY "createdAt" DESC LIMIT 5`
   ]);
 
+  const productCount = parseInt(productCountResult[0].count);
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalRevenue = orders.reduce((sum: number, order: any) => sum + order.totalAmount, 0);
   const averageOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
 
   // Process data for the last 7 days chart
@@ -35,11 +29,11 @@ export default async function AdminDashboard() {
     nextDay.setDate(nextDay.getDate() + 1);
     
     const dayRevenue = orders
-      .filter(o => {
+      .filter((o: any) => {
         const orderDate = new Date(o.createdAt);
         return orderDate >= day && orderDate < nextDay;
       })
-      .reduce((sum, order) => sum + order.totalAmount, 0);
+      .reduce((sum: number, order: any) => sum + order.totalAmount, 0);
       
     return {
       date: day.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -124,7 +118,7 @@ export default async function AdminDashboard() {
               {recentOrders.length === 0 ? (
                 <div className="p-6 text-center text-sm text-slate-500">No orders yet.</div>
               ) : (
-                recentOrders.map(order => (
+                recentOrders.map((order: any) => (
                   <Link href={`/admin/orders/${order.id}`} key={order.id} className="block p-4 hover:bg-slate-50 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-bold text-sm text-slate-800">{order.orderId}</span>

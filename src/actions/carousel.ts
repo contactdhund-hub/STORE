@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 
@@ -12,10 +12,12 @@ export async function createSlide(formData: FormData) {
     const image = formData.get("image") as string;
     const link = formData.get("link") as string || "/";
     const order = parseInt(formData.get("order") as string || "0");
+    const now = new Date().toISOString();
 
-    await db.heroSlide.create({
-      data: { title, subtitle, image, link, order }
-    });
+    await sql`
+      INSERT INTO "HeroSlide" ("id", "image", "title", "subtitle", "link", "order", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${image}, ${title}, ${subtitle}, ${link}, ${order}, ${now}, ${now})
+    `;
 
     revalidatePath("/");
     revalidatePath("/admin/carousel");
@@ -29,7 +31,7 @@ export async function createSlide(formData: FormData) {
 export async function deleteSlide(id: string) {
   try {
     await requireAdmin();
-    await db.heroSlide.delete({ where: { id } });
+    await sql`DELETE FROM "HeroSlide" WHERE "id" = ${id}`;
     revalidatePath("/");
     revalidatePath("/admin/carousel");
     return { success: true };

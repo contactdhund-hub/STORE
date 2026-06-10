@@ -6,13 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "postinstall": "prisma generate"
+    "lint": "eslint"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
-    "@prisma/adapter-neon": "^6.19.3",
-    "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "lucide-react": "^1.17.0",
@@ -22,24 +19,17 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1",
-    "ws": "^8.21.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
-    "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
   }
 }

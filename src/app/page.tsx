@@ -1,6 +1,6 @@
 import { ProductCard } from "@/components/product/ProductCard";
 import { HeroCarousel } from "@/components/layout/HeroCarousel";
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 // Force dynamic so it always fetches fresh DB data
 export const dynamic = 'force-dynamic';
@@ -9,35 +9,47 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
   const params = await searchParams;
   const categoryFilter = params.category;
 
-  const liveProducts = await db.product.findMany({
-    where: categoryFilter && categoryFilter !== 'ALL' ? {
-      category: {
-        equals: categoryFilter,
-        mode: 'insensitive'
-      }
-    } : undefined,
-    include: {
-      images: true,
-      sizes: true,
-      colors: true
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+  // Fetch products (with optional category filter)
+  let products;
+  if (categoryFilter && categoryFilter !== 'ALL') {
+    products = await sql`
+      SELECT * FROM "Product"
+      WHERE LOWER("category") = LOWER(${categoryFilter})
+      ORDER BY "createdAt" DESC
+    `;
+  } else {
+    products = await sql`
+      SELECT * FROM "Product" ORDER BY "createdAt" DESC
+    `;
+  }
 
-  const slides = await db.heroSlide.findMany({
-    orderBy: { order: 'asc' }
-  });
+  // Fetch related data for all products
+  const productIds = products.map(p => p.id);
+  
+  let images: any[] = [];
+  let sizes: any[] = [];
+  let colors: any[] = [];
 
-  // Map Prisma relations to match the frontend types expected by ProductCard
-  const mappedProducts = liveProducts.map(p => ({
+  if (productIds.length > 0) {
+    [images, sizes, colors] = await Promise.all([
+      sql`SELECT * FROM "ProductImage" WHERE "productId" = ANY(${productIds})`,
+      sql`SELECT * FROM "ProductSize" WHERE "productId" = ANY(${productIds})`,
+      sql`SELECT * FROM "ProductColor" WHERE "productId" = ANY(${productIds})`,
+    ]);
+  }
+
+  const slides = await sql`SELECT * FROM "HeroSlide" ORDER BY "order" ASC`;
+
+  // Map to match the frontend types expected by ProductCard
+  const mappedProducts = products.map(p => ({
     id: p.id,
     name: p.name,
     description: p.description || "",
     price: p.price,
     category: p.category,
-    images: p.images.map(img => img.url),
-    sizes: p.sizes.map(s => s.name),
-    colors: p.colors.map(c => ({ name: c.name, hex: c.hex }))
+    images: images.filter(img => img.productId === p.id).map(img => img.url),
+    sizes: sizes.filter(s => s.productId === p.id).map(s => s.name),
+    colors: colors.filter(c => c.productId === p.id).map(c => ({ name: c.name, hex: c.hex }))
   }));
 
   return (

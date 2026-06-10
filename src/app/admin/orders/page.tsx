@@ -1,11 +1,11 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import Link from "next/link";
 import { Eye, Clock, CheckCircle, XCircle, Truck } from "lucide-react";
 
 export default async function AdminOrders() {
-  const orders = await db.order.findMany({
-    orderBy: { createdAt: "desc" }
-  });
+  const orders = await sql`
+    SELECT * FROM "Order" ORDER BY "createdAt" DESC
+  `;
 
   return (
     <div>

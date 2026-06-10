@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { createCoupon, deleteCoupon, toggleCouponStatus } from "@/actions/coupon";
 import { Trash2, Plus, Percent, DollarSign, Check, X } from "lucide-react";
 
@@ -19,9 +19,9 @@ async function handleToggle(formData: FormData) {
 }
 
 export default async function CouponsPage() {
-  const coupons = await db.coupon.findMany({
-    orderBy: { createdAt: "desc" }
-  });
+  const coupons = await sql`
+    SELECT * FROM "Coupon" ORDER BY "createdAt" DESC
+  `;
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -78,7 +78,7 @@ export default async function CouponsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {coupons.map((coupon) => (
+                  {coupons.map((coupon: any) => (
                     <tr key={coupon.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-bold font-mono bg-slate-100 px-2 py-1 rounded text-slate-800">

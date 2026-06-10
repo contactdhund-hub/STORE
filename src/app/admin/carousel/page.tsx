@@ -1,14 +1,12 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { CarouselManager } from "./CarouselManager";
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminCarouselPage() {
-  const slides = await db.heroSlide.findMany({
-    orderBy: {
-      order: 'asc'
-    }
-  });
+  const slides = await sql`
+    SELECT * FROM "HeroSlide" ORDER BY "order" ASC
+  `;
 
   return (
     <div className="flex-1 p-8 overflow-y-auto">

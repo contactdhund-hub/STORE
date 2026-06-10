@@ -1,22 +1,28 @@
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { ReviewTable } from "./ReviewTable";
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminReviewsPage() {
-  const reviews = await db.review.findMany({
-    include: {
-      product: {
-        select: {
-          name: true,
-          images: { take: 1 }
-        }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
+  // Fetch reviews with product info via JOIN
+  const reviews = await sql`
+    SELECT 
+      r.*,
+      p."name" as "productName",
+      (SELECT pi."url" FROM "ProductImage" pi WHERE pi."productId" = r."productId" LIMIT 1) as "productImage"
+    FROM "Review" r
+    LEFT JOIN "Product" p ON p."id" = r."productId"
+    ORDER BY r."createdAt" DESC
+  `;
+
+  // Transform to match the expected format
+  const mappedReviews = reviews.map(r => ({
+    ...r,
+    product: {
+      name: r.productName,
+      images: r.productImage ? [{ url: r.productImage }] : []
     }
-  });
+  }));
 
   return (
     <div className="flex-1 p-8 overflow-y-auto">
@@ -29,7 +35,7 @@ export default async function AdminReviewsPage() {
         </div>
 
         <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-          <ReviewTable reviews={reviews as any} />
+          <ReviewTable reviews={mappedReviews as any} />
         </div>
       </div>
     </div>

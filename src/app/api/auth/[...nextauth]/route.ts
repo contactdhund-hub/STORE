@@ -1,7 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { db } from "@/lib/db";
+import { sql } from "@/lib/db";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,12 +14,16 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await db.user.findUnique({
-          where: { email: credentials.email }
-        });
+        const rows = await sql`
+          SELECT "id", "email", "passwordHash", "role"
+          FROM "User"
+          WHERE "email" = ${credentials.email}
+          LIMIT 1
+        `;
 
-        if (!user) return null;
+        if (rows.length === 0) return null;
 
+        const user = rows[0];
         const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
         if (!isPasswordValid) return null;
