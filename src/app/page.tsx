@@ -2,54 +2,58 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { HeroCarousel } from "@/components/layout/HeroCarousel";
 import { sql } from "@/lib/db";
 
-// Force dynamic so it always fetches fresh DB data
-export const dynamic = 'force-dynamic';
+// Revalidate every 30 seconds instead of force-dynamic (ISR)
+export const revalidate = 30;
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
   const params = await searchParams;
   const categoryFilter = params.category;
 
-  // Fetch products (with optional category filter)
+  // Single query with JOINs to get products + all relations in one round-trip
   let products;
   if (categoryFilter && categoryFilter !== 'ALL') {
     products = await sql`
-      SELECT * FROM "Product"
-      WHERE LOWER("category") = LOWER(${categoryFilter})
-      ORDER BY "createdAt" DESC
+      SELECT 
+        p.*,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('url', pi."url")) FILTER (WHERE pi."id" IS NOT NULL), '[]') as images,
+        COALESCE(json_agg(DISTINCT ps."name") FILTER (WHERE ps."id" IS NOT NULL), '[]') as sizes,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('name', pc."name", 'hex', pc."hex")) FILTER (WHERE pc."id" IS NOT NULL), '[]') as colors
+      FROM "Product" p
+      LEFT JOIN "ProductImage" pi ON pi."productId" = p."id"
+      LEFT JOIN "ProductSize" ps ON ps."productId" = p."id"
+      LEFT JOIN "ProductColor" pc ON pc."productId" = p."id"
+      WHERE LOWER(p."category") = LOWER(${categoryFilter})
+      GROUP BY p."id"
+      ORDER BY p."createdAt" DESC
     `;
   } else {
     products = await sql`
-      SELECT * FROM "Product" ORDER BY "createdAt" DESC
+      SELECT 
+        p.*,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('url', pi."url")) FILTER (WHERE pi."id" IS NOT NULL), '[]') as images,
+        COALESCE(json_agg(DISTINCT ps."name") FILTER (WHERE ps."id" IS NOT NULL), '[]') as sizes,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('name', pc."name", 'hex', pc."hex")) FILTER (WHERE pc."id" IS NOT NULL), '[]') as colors
+      FROM "Product" p
+      LEFT JOIN "ProductImage" pi ON pi."productId" = p."id"
+      LEFT JOIN "ProductSize" ps ON ps."productId" = p."id"
+      LEFT JOIN "ProductColor" pc ON pc."productId" = p."id"
+      GROUP BY p."id"
+      ORDER BY p."createdAt" DESC
     `;
-  }
-
-  // Fetch related data for all products
-  const productIds = products.map(p => p.id);
-  
-  let images: any[] = [];
-  let sizes: any[] = [];
-  let colors: any[] = [];
-
-  if (productIds.length > 0) {
-    [images, sizes, colors] = await Promise.all([
-      sql`SELECT * FROM "ProductImage" WHERE "productId" = ANY(${productIds})`,
-      sql`SELECT * FROM "ProductSize" WHERE "productId" = ANY(${productIds})`,
-      sql`SELECT * FROM "ProductColor" WHERE "productId" = ANY(${productIds})`,
-    ]);
   }
 
   const slides = await sql`SELECT * FROM "HeroSlide" ORDER BY "order" ASC`;
 
-  // Map to match the frontend types expected by ProductCard
-  const mappedProducts = products.map(p => ({
+  // Map to match the frontend types
+  const mappedProducts = products.map((p: any) => ({
     id: p.id,
     name: p.name,
     description: p.description || "",
     price: p.price,
     category: p.category,
-    images: images.filter(img => img.productId === p.id).map(img => img.url),
-    sizes: sizes.filter(s => s.productId === p.id).map(s => s.name),
-    colors: colors.filter(c => c.productId === p.id).map(c => ({ name: c.name, hex: c.hex }))
+    images: (p.images || []).map((img: any) => img.url),
+    sizes: p.sizes || [],
+    colors: p.colors || []
   }));
 
   return (

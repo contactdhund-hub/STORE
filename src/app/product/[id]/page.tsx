@@ -5,50 +5,60 @@ import Link from "next/link";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ReviewSection } from "@/components/product/ReviewSection";
 
+// Revalidate product pages every 60 seconds (ISR)
+export const revalidate = 60;
+
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const { id } = await params;
   
-  // Fetch product and all its relations in parallel
-  const [products, productImages, productSizes, productColors, reviews] = await Promise.all([
-    sql`SELECT * FROM "Product" WHERE "id" = ${id} LIMIT 1`,
-    sql`SELECT * FROM "ProductImage" WHERE "productId" = ${id}`,
-    sql`SELECT * FROM "ProductSize" WHERE "productId" = ${id}`,
-    sql`SELECT * FROM "ProductColor" WHERE "productId" = ${id}`,
+  // Single query: product + images + sizes + colors via JOINs
+  const [productResult, reviews, relatedRaw] = await Promise.all([
+    sql`
+      SELECT 
+        p.*,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('id', pi."id", 'url', pi."url")) FILTER (WHERE pi."id" IS NOT NULL), '[]') as images,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('id', ps."id", 'name', ps."name")) FILTER (WHERE ps."id" IS NOT NULL), '[]') as sizes,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('id', pc."id", 'name', pc."name", 'hex', pc."hex")) FILTER (WHERE pc."id" IS NOT NULL), '[]') as colors
+      FROM "Product" p
+      LEFT JOIN "ProductImage" pi ON pi."productId" = p."id"
+      LEFT JOIN "ProductSize" ps ON ps."productId" = p."id"
+      LEFT JOIN "ProductColor" pc ON pc."productId" = p."id"
+      WHERE p."id" = ${id}
+      GROUP BY p."id"
+      LIMIT 1
+    `,
     sql`SELECT * FROM "Review" WHERE "productId" = ${id} ORDER BY "createdAt" DESC`,
+    sql`
+      SELECT 
+        p.*,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('url', pi."url")) FILTER (WHERE pi."id" IS NOT NULL), '[]') as images,
+        COALESCE(json_agg(DISTINCT ps."name") FILTER (WHERE ps."id" IS NOT NULL), '[]') as sizes,
+        COALESCE(json_agg(DISTINCT jsonb_build_object('name', pc."name", 'hex', pc."hex")) FILTER (WHERE pc."id" IS NOT NULL), '[]') as colors
+      FROM "Product" p
+      LEFT JOIN "ProductImage" pi ON pi."productId" = p."id"
+      LEFT JOIN "ProductSize" ps ON ps."productId" = p."id"
+      LEFT JOIN "ProductColor" pc ON pc."productId" = p."id"
+      WHERE p."id" != ${id}
+      GROUP BY p."id"
+      LIMIT 3
+    `,
   ]);
 
-  if (products.length === 0) {
+  if (productResult.length === 0) {
     notFound();
   }
 
   const product = {
-    ...products[0],
-    images: productImages,
-    sizes: productSizes,
-    colors: productColors,
+    ...productResult[0],
     reviews,
   } as any;
 
-  // Get related products (any 3 products that aren't this one)
-  const relatedRaw = await sql`
-    SELECT * FROM "Product" WHERE "id" != ${id} LIMIT 3
-  `;
-
-  let relatedProducts: any[] = [];
-  if (relatedRaw.length > 0) {
-    const relatedIds = relatedRaw.map(r => r.id);
-    const [relImages, relSizes, relColors] = await Promise.all([
-      sql`SELECT * FROM "ProductImage" WHERE "productId" = ANY(${relatedIds})`,
-      sql`SELECT * FROM "ProductSize" WHERE "productId" = ANY(${relatedIds})`,
-      sql`SELECT * FROM "ProductColor" WHERE "productId" = ANY(${relatedIds})`,
-    ]);
-    relatedProducts = relatedRaw.map(rp => ({
-      ...rp,
-      images: relImages.filter(img => img.productId === rp.id).map(img => img.url),
-      sizes: relSizes.filter(s => s.productId === rp.id).map(s => s.name),
-      colors: relColors.filter(c => c.productId === rp.id).map(c => ({ name: c.name, hex: c.hex })),
-    }));
-  }
+  const relatedProducts = relatedRaw.map((rp: any) => ({
+    ...rp,
+    images: (rp.images || []).map((img: any) => img.url),
+    sizes: rp.sizes || [],
+    colors: rp.colors || [],
+  }));
 
   const mainImage = product.images[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop";
 

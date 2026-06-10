@@ -3,13 +3,23 @@
 import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { unstable_cache } from "next/cache";
 
-export async function getCategories() {
-  try {
+// Cache categories for 60 seconds — called on every page via Header
+const getCategoriesCached = unstable_cache(
+  async () => {
     const categories = await sql`
       SELECT * FROM "Category" ORDER BY "createdAt" ASC
     `;
     return categories;
+  },
+  ['categories'],
+  { revalidate: 60 }
+);
+
+export async function getCategories() {
+  try {
+    return await getCategoriesCached();
   } catch (error) {
     console.error("Failed to fetch categories:", error);
     return [];
