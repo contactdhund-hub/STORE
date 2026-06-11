@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { createSlide, deleteSlide } from "@/actions/carousel";
+import { CldUploadWidget } from "next-cloudinary";
 
 interface Slide {
   id: string;
@@ -16,6 +17,7 @@ interface Slide {
 export function CarouselManager({ initialSlides }: { initialSlides: Slide[] }) {
   const [isAdding, setIsAdding] = useState(false);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this slide?")) {
@@ -32,6 +34,7 @@ export function CarouselManager({ initialSlides }: { initialSlides: Slide[] }) {
     await createSlide(formData);
     setIsAdding(false);
     setLoadingId(null);
+    setImageUrl("");
   };
 
   return (
@@ -55,7 +58,41 @@ export function CarouselManager({ initialSlides }: { initialSlides: Slide[] }) {
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Image URL</label>
-            <input required name="image" type="url" placeholder="https://images.unsplash.com/..." className="w-full border border-gray-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-black" />
+            <div className="flex flex-col gap-3">
+              {imageUrl ? (
+                <div className="relative w-full h-40 rounded-md overflow-hidden border border-gray-200 bg-gray-100">
+                  <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button" 
+                    onClick={() => setImageUrl("")}
+                    className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <CldUploadWidget 
+                  signatureEndpoint="/api/sign-cloudinary-params"
+                  onSuccess={(result: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
+                    if (result.info && result.info.secure_url) {
+                      setImageUrl(result.info.secure_url);
+                    }
+                  }}
+                >
+                  {({ open }) => (
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.preventDefault(); open(); }} 
+                      className="w-full py-6 border-2 border-dashed border-gray-300 rounded-md text-gray-500 hover:border-black hover:text-black transition-colors flex flex-col items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100"
+                    >
+                      <Plus size={20} />
+                      <span className="text-sm font-medium">Upload Image</span>
+                    </button>
+                  )}
+                </CldUploadWidget>
+              )}
+              <input required name="image" type="url" placeholder="https://images.unsplash.com/..." className="w-full border border-gray-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-black" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+            </div>
           </div>
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Title</label>
