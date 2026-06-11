@@ -117,3 +117,85 @@ export async function createProduct(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin/products");
 }
+
+export async function updateProduct(id: string, formData: FormData) {
+  await requireAdmin();
+  const priceStr = formData.get("price")?.toString();
+  const price = priceStr ? parseFloat(priceStr) : NaN;
+
+  const parsed = ProductSchema.safeParse({
+    name: formData.get("name")?.toString().trim(),
+    category: formData.get("category")?.toString().trim(),
+    price: price,
+    description: formData.get("description")?.toString().trim() || ""
+  });
+
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0].message);
+  }
+
+  const { name, category, price: validPrice, description } = parsed.data;
+
+  const imagesInput = formData.get("images")?.toString() || "";
+  const sizesInput = formData.get("sizes")?.toString() || "";
+  const colorsInput = formData.get("colors")?.toString() || "";
+
+  // Process Images
+  const rawImages = imagesInput 
+    ? imagesInput.split(',').map(i => i.trim()).filter(Boolean)
+    : [];
+
+  const images: string[] = [];
+  if (rawImages.length === 0) {
+    images.push("https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop");
+  } else {
+    for (const url of rawImages) {
+      const parsedUrl = z.string().url("Invalid image URL").safeParse(url);
+      if (parsedUrl.success) {
+        images.push(parsedUrl.data);
+      }
+    }
+  }
+
+  // Process Sizes
+  const sizes = sizesInput
+    ? sizesInput.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+
+  // Process Colors
+  const colors = colorsInput
+    ? colorsInput.split(',').map(c => {
+        const [colorName, hex] = c.split(':').map(part => part.trim());
+        return { name: colorName || "Color", hex: hex || "#000000" };
+      }).filter(c => c.name)
+    : [];
+
+  const now = new Date().toISOString();
+
+  // Update base product
+  await sql`
+    UPDATE "Product" 
+    SET "name" = ${name}, "description" = ${description}, "price" = ${validPrice}, "category" = ${category}, "updatedAt" = ${now}
+    WHERE "id" = ${id}
+  `;
+
+  // Delete old relations
+  await sql`DELETE FROM "ProductImage" WHERE "productId" = ${id}`;
+  await sql`DELETE FROM "ProductSize" WHERE "productId" = ${id}`;
+  await sql`DELETE FROM "ProductColor" WHERE "productId" = ${id}`;
+
+  // Re-insert relations
+  for (const url of images) {
+    await sql`INSERT INTO "ProductImage" ("id", "url", "productId") VALUES (gen_random_uuid(), ${url}, ${id})`;
+  }
+  for (const sizeName of sizes) {
+    await sql`INSERT INTO "ProductSize" ("id", "name", "productId") VALUES (gen_random_uuid(), ${sizeName}, ${id})`;
+  }
+  for (const color of colors) {
+    await sql`INSERT INTO "ProductColor" ("id", "name", "hex", "productId") VALUES (gen_random_uuid(), ${color.name}, ${color.hex}, ${id})`;
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/products");
+  revalidatePath(`/product/${id}`);
+}

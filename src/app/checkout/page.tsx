@@ -235,6 +235,12 @@ export default function CheckoutPage() {
                 <div className="flex-1 pt-1">
                   <h3 className="font-bold text-sm text-[#0a1128] line-clamp-1">{item.name}</h3>
                   {item.size && <p className="text-xs text-gray-500 mt-0.5">Size: {item.size}</p>}
+                  {item.color && (
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs text-gray-500">Color: {item.color.name}</span>
+                      <div className="w-2.5 h-2.5 rounded-full border border-gray-200" style={{ backgroundColor: item.color.hex }} />
+                    </div>
+                  )}
                 </div>
                 <div className="pt-1 text-right font-semibold text-sm">
                   Rs. {(item.price * item.quantity).toLocaleString()}

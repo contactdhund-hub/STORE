@@ -7,6 +7,7 @@ import { useCart } from "@/store/useCart";
 export function ProductOptions({ product }: { product: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<string | null>(product.sizes?.[0]?.name || null);
+  const [selectedColor, setSelectedColor] = useState<{name: string, hex: string} | null>(product.colors?.[0] || null);
   const [quantity, setQuantity] = useState(1);
 
   const mockOriginalPrice = product.price * 1.42;
@@ -48,7 +49,7 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
 
       {/* Size Selector */}
       {product.sizes && product.sizes.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
             <span className="text-[11px] font-bold tracking-widest text-[#0a1128] uppercase">Select Size</span>
             <a href="#" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase hover:text-black">Size Chart</a>
@@ -56,17 +57,42 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
           <div className="flex flex-wrap gap-2.5">
             {product.sizes.map((size: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
               <button
-                key={size.id}
-                onClick={() => setSelectedSize(size.name)}
+                key={size.id || size.name || size}
+                onClick={() => setSelectedSize(size.name || size)}
                 disabled={product.inStock === false}
                 className={`w-[52px] h-[42px] border rounded-md text-[11px] font-bold transition-all ${
-                  selectedSize === size.name 
+                  selectedSize === (size.name || size)
                     ? 'border-black text-black ring-1 ring-black' 
                     : 'border-gray-200 text-gray-500 hover:border-gray-400'
                 } ${product.inStock === false ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {size.name}
+                {size.name || size}
               </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Color Selector */}
+      {product.colors && product.colors.length > 0 && (
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[11px] font-bold tracking-widest text-[#0a1128] uppercase">Select Color</span>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {product.colors.map((color: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
+              <button
+                key={color.id || color.name}
+                onClick={() => setSelectedColor(color)}
+                disabled={product.inStock === false}
+                className={`w-10 h-10 rounded-full transition-all flex items-center justify-center ${
+                  selectedColor?.name === color.name 
+                    ? 'ring-2 ring-offset-2 ring-black' 
+                    : 'ring-1 ring-gray-200 hover:ring-gray-400'
+                } ${product.inStock === false ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+              />
             ))}
           </div>
         </div>
@@ -101,12 +127,13 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
           onClick={() => {
             if (product.inStock === false) return;
             addItem({
-              id: `${product.id}-${selectedSize || 'OS'}`,
+              id: `${product.id}-${selectedSize || 'OS'}-${selectedColor?.name || 'OC'}`,
               productId: product.id,
               name: product.name,
               price: product.price,
               quantity,
               size: selectedSize,
+              color: selectedColor,
               image: product.images?.[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop"
             });
             alert("Added to cart!");

@@ -15,6 +15,10 @@ const OrderItemSchema = z.object({
   price: z.number().positive("Price must be positive"),
   quantity: z.number().int().positive("Quantity must be a positive integer"),
   size: z.string().optional().nullable(),
+  color: z.object({
+    name: z.string(),
+    hex: z.string()
+  }).optional().nullable(),
   image: z.string().optional().nullable()
 });
 
@@ -57,6 +61,7 @@ export async function createOrder(data: any /* eslint-disable-line @typescript-e
         price: product.price,
         quantity: item.quantity,
         size: item.size || null,
+        color: item.color ? item.color.name : null,
         image: item.image || null
       });
     }
@@ -95,8 +100,8 @@ export async function createOrder(data: any /* eslint-disable-line @typescript-e
     // Insert order items using server-resolved prices and names
     for (const item of resolvedItems) {
       await sql`
-        INSERT INTO "OrderItem" ("id", "orderId", "productId", "productName", "price", "quantity", "size", "image")
-        VALUES (gen_random_uuid(), ${order.id}, ${item.productId}, ${item.name}, ${item.price}, ${item.quantity}, ${item.size}, ${item.image})
+        INSERT INTO "OrderItem" ("id", "orderId", "productId", "productName", "price", "quantity", "size", "color", "image")
+        VALUES (gen_random_uuid(), ${order.id}, ${item.productId}, ${item.name}, ${item.price}, ${item.quantity}, ${item.size}, ${item.color}, ${item.image})
       `;
     }
 
@@ -157,7 +162,7 @@ export async function trackOrder(orderId: string) {
     const rows = await sql`
       SELECT 
         o."orderId", o."status", o."createdAt", o."totalAmount", o."firstName",
-        COALESCE(json_agg(DISTINCT jsonb_build_object('productName', oi."productName", 'quantity', oi."quantity", 'size', oi."size", 'image', oi."image")) FILTER (WHERE oi."id" IS NOT NULL), '[]') as items
+        COALESCE(json_agg(DISTINCT jsonb_build_object('productName', oi."productName", 'quantity', oi."quantity", 'size', oi."size", 'color', oi."color", 'image', oi."image")) FILTER (WHERE oi."id" IS NOT NULL), '[]') as items
       FROM "Order" o
       LEFT JOIN "OrderItem" oi ON oi."orderId" = o."id"
       WHERE o."orderId" = ${orderId}

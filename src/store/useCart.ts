@@ -8,6 +8,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   size: string | null;
+  color?: { name: string, hex: string } | null;
   image: string;
 }
 
@@ -30,7 +31,7 @@ export const useCart = create<CartStore>()(
       addItem: (item) =>
         set((state) => {
           const existingItem = state.items.find(
-            (i) => i.productId === item.productId && i.size === item.size
+            (i) => i.productId === item.productId && i.size === item.size && i.color?.name === item.color?.name
           );
           if (existingItem) {
             return {

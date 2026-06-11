@@ -1,11 +1,22 @@
 import { sql } from "@/lib/db";
 import { deleteProduct, toggleProductStock } from "@/actions/product";
 import { NewProductModal } from "./new-product-modal";
+import { EditProductModal } from "./edit-product-modal";
 import { Search, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function AdminProducts() {
   const products = await sql`
-    SELECT * FROM "Product" ORDER BY "createdAt" DESC
+    SELECT 
+      p.*,
+      COALESCE(json_agg(DISTINCT pi."url") FILTER (WHERE pi."id" IS NOT NULL), '[]') as images,
+      COALESCE(json_agg(DISTINCT ps."name") FILTER (WHERE ps."id" IS NOT NULL), '[]') as sizes,
+      COALESCE(json_agg(DISTINCT jsonb_build_object('name', pc."name", 'hex', pc."hex")) FILTER (WHERE pc."id" IS NOT NULL), '[]') as colors
+    FROM "Product" p
+    LEFT JOIN "ProductImage" pi ON pi."productId" = p."id"
+    LEFT JOIN "ProductSize" ps ON ps."productId" = p."id"
+    LEFT JOIN "ProductColor" pc ON pc."productId" = p."id"
+    GROUP BY p."id"
+    ORDER BY p."createdAt" DESC
   `;
 
   return (
@@ -73,14 +84,17 @@ export default async function AdminProducts() {
                     </form>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <form action={async () => {
-                      "use server";
-                      await deleteProduct(product.id);
-                    }}>
-                      <button type="submit" className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors px-3 py-1.5 rounded-md hover:bg-red-50 inline-block">
-                        Delete
-                      </button>
-                    </form>
+                    <div className="flex items-center justify-end gap-2">
+                      <EditProductModal product={product} />
+                      <form action={async () => {
+                        "use server";
+                        await deleteProduct(product.id);
+                      }}>
+                        <button type="submit" className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors px-3 py-1.5 rounded-md hover:bg-red-50 inline-block">
+                          Delete
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}
