@@ -2,8 +2,34 @@
 
 import { sql } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { headers } from "next/headers";
+
+// Simple memory-based rate limiter (resets on serverless cold starts)
+const rateLimitMap = new Map<string, { count: number, resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const limitData = rateLimitMap.get(ip);
+  if (!limitData || now > limitData.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 60000 }); // 1 minute window
+    return true;
+  }
+  if (limitData.count >= 5) { // 5 requests per minute
+    return false;
+  }
+  limitData.count++;
+  return true;
+}
 
 export async function registerUser(formData: FormData) {
+  // Get IP address from headers
+  const forwardedFor = headers().get("x-forwarded-for");
+  const ip = forwardedFor ? forwardedFor.split(',')[0] : "unknown_ip";
+  
+  if (!checkRateLimit(ip)) {
+    return { error: "Too many registration attempts. Please try again later." };
+  }
+
   const email = formData.get("email")?.toString().trim();
   const password = formData.get("password")?.toString();
 

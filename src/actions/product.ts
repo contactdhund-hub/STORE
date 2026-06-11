@@ -51,9 +51,22 @@ export async function createProduct(formData: FormData) {
   const colorsInput = formData.get("colors")?.toString() || "";
 
   // Process Images
-  const images = imagesInput 
+  const rawImages = imagesInput 
     ? imagesInput.split(',').map(i => i.trim()).filter(Boolean)
-    : ["https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop"];
+    : [];
+
+  const images: string[] = [];
+  if (rawImages.length === 0) {
+    images.push("https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop");
+  } else {
+    for (const url of rawImages) {
+      const parsedUrl = z.string().url("Invalid image URL provided").safeParse(url);
+      if (!parsedUrl.success) {
+        throw new Error(`Invalid image URL: ${url}`);
+      }
+      images.push(parsedUrl.data);
+    }
+  }
 
   // Process Sizes
   const sizes = sizesInput

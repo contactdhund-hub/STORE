@@ -4,6 +4,9 @@ import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { sendNewOrderAlertToAdmin, sendOrderConfirmationToCustomer, sendOrderStatusUpdate } from "@/lib/email";
+import { getStoreSettings } from "@/actions/settings";
+import { validateCoupon } from "@/actions/coupon";
+import crypto from "crypto";
 import { z } from "zod";
 
 const OrderItemSchema = z.object({
@@ -36,28 +39,69 @@ export async function createOrder(data: any /* eslint-disable-line @typescript-e
   try {
     const parsedData = OrderSchema.parse(data);
 
-    // Generate order ID
-    const randomChars = Math.random().toString(36).substring(2, 7).toUpperCase();
+    // Calculate prices server-side
+    let calculatedSubtotal = 0;
+    const resolvedItems = [];
+
+    for (const item of parsedData.items) {
+      const rows = await sql`SELECT "name", "price", "id" FROM "Product" WHERE "id" = ${item.productId} LIMIT 1`;
+      if (rows.length === 0) {
+        return { success: false, error: `Product not found or invalid.` };
+      }
+      const product = rows[0];
+      calculatedSubtotal += product.price * item.quantity;
+      
+      resolvedItems.push({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+        size: item.size || null,
+        image: item.image || null
+      });
+    }
+
+    const settings = await getStoreSettings();
+    const shipping = calculatedSubtotal > settings.freeShippingThreshold ? 0 : settings.shippingFee;
+    
+    let discountAmount = 0;
+    if (parsedData.couponCode) {
+      const res = await validateCoupon(parsedData.couponCode);
+      if (res.valid && res.coupon) {
+        if (res.coupon.discountType === "PERCENTAGE") {
+          discountAmount = Math.round(calculatedSubtotal * (res.coupon.discountValue / 100));
+        } else {
+          discountAmount = res.coupon.discountValue;
+        }
+      } else {
+        return { success: false, error: res.error || "Invalid coupon" };
+      }
+    }
+    
+    const finalTotal = calculatedSubtotal + shipping - discountAmount;
+
+    // Generate secure order ID
+    const randomChars = crypto.randomBytes(4).toString('hex').toUpperCase();
     const orderId = `#ORD-${randomChars}`;
     const now = new Date().toISOString();
 
     // Create the order
     const [order] = await sql`
       INSERT INTO "Order" ("id", "orderId", "email", "firstName", "lastName", "address", "apartment", "city", "postalCode", "phone", "totalAmount", "couponCode", "discountAmount", "status", "createdAt", "updatedAt")
-      VALUES (gen_random_uuid(), ${orderId}, ${parsedData.email}, ${parsedData.firstName}, ${parsedData.lastName}, ${parsedData.address}, ${parsedData.apartment || null}, ${parsedData.city}, ${parsedData.postalCode}, ${parsedData.phone}, ${parsedData.totalAmount}, ${parsedData.couponCode || null}, ${parsedData.discountAmount || null}, 'PENDING', ${now}, ${now})
+      VALUES (gen_random_uuid(), ${orderId}, ${parsedData.email}, ${parsedData.firstName}, ${parsedData.lastName}, ${parsedData.address}, ${parsedData.apartment || null}, ${parsedData.city}, ${parsedData.postalCode}, ${parsedData.phone}, ${finalTotal}, ${parsedData.couponCode || null}, ${discountAmount > 0 ? discountAmount : null}, 'PENDING', ${now}, ${now})
       RETURNING "id", "orderId"
     `;
 
-    // Insert order items
-    for (const item of parsedData.items) {
+    // Insert order items using server-resolved prices and names
+    for (const item of resolvedItems) {
       await sql`
         INSERT INTO "OrderItem" ("id", "orderId", "productId", "productName", "price", "quantity", "size", "image")
-        VALUES (gen_random_uuid(), ${order.id}, ${item.productId}, ${item.name}, ${item.price}, ${item.quantity}, ${item.size || null}, ${item.image || null})
+        VALUES (gen_random_uuid(), ${order.id}, ${item.productId}, ${item.name}, ${item.price}, ${item.quantity}, ${item.size}, ${item.image})
       `;
     }
 
     // Trigger emails asynchronously (do not await so user isn't blocked)
-    const fullOrderData = { ...parsedData, orderId: order.orderId };
+    const fullOrderData = { ...parsedData, orderId: order.orderId, totalAmount: finalTotal, discountAmount: discountAmount > 0 ? discountAmount : null };
     sendNewOrderAlertToAdmin(fullOrderData);
     sendOrderConfirmationToCustomer(fullOrderData);
 

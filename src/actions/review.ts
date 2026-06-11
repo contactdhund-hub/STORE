@@ -3,22 +3,28 @@
 import { sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { z } from "zod";
 
 const ReviewSchema = z.object({
   productId: z.string().uuid("Invalid product ID"),
   reviewerName: z.string().min(1, "Name is required"),
-  reviewerEmail: z.string().email("Invalid email address"),
   rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating cannot exceed 5"),
   comment: z.string().min(1, "Comment is required")
 });
 
 export async function submitReview(formData: FormData) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.email) {
+      return { success: false, error: "You must be logged in to submit a review." };
+    }
+    const reviewerEmail = session.user.email;
+
     const parsed = ReviewSchema.safeParse({
       productId: formData.get("productId"),
       reviewerName: formData.get("reviewerName"),
-      reviewerEmail: formData.get("reviewerEmail"),
       rating: parseInt(formData.get("rating") as string),
       comment: formData.get("comment")
     });
@@ -27,9 +33,9 @@ export async function submitReview(formData: FormData) {
       return { success: false, error: parsed.error.issues[0].message };
     }
 
-    const { productId, reviewerName, reviewerEmail, rating, comment } = parsed.data;
+    const { productId, reviewerName, rating, comment } = parsed.data;
 
-    // VERIFICATION: Check if an Order exists with the provided email that contains this productId
+    // VERIFICATION: Check if an Order exists with the session email that contains this productId
     const purchaseCheck = await sql`
       SELECT oi."id" FROM "OrderItem" oi
       INNER JOIN "Order" o ON o."id" = oi."orderId"

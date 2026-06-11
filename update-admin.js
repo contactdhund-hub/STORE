@@ -9,13 +9,13 @@ async function run() {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(newPassword, salt);
     
-    // We update any admin user (assuming there's only 1)
+    // Insert an admin user since the database is empty
     const res = await sql`
-      UPDATE "User" 
-      SET "email" = ${newEmail}, "passwordHash" = ${hash} 
-      WHERE "role" = 'ADMIN'
+      INSERT INTO "User" ("email", "passwordHash", "role", "updatedAt")
+      VALUES (${newEmail}, ${hash}, 'ADMIN', NOW())
+      ON CONFLICT ("email") DO UPDATE SET "passwordHash" = ${hash}, "role" = 'ADMIN'
     `;
-    console.log("Admin credentials updated securely.");
+    console.log("Admin credentials inserted securely.");
   } catch (error) {
     console.error("Error:", error);
   }
