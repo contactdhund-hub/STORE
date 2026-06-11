@@ -23,7 +23,8 @@ function checkRateLimit(ip: string): boolean {
 
 export async function registerUser(formData: FormData) {
   // Get IP address from headers
-  const forwardedFor = headers().get("x-forwarded-for");
+  const headersList = await headers();
+  const forwardedFor = headersList.get("x-forwarded-for");
   const ip = forwardedFor ? forwardedFor.split(',')[0] : "unknown_ip";
   
   if (!checkRateLimit(ip)) {
