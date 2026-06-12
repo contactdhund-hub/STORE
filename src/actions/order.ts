@@ -105,10 +105,10 @@ export async function createOrder(data: any /* eslint-disable-line @typescript-e
       `;
     }
 
-    // Trigger emails asynchronously (do not await so user isn't blocked)
+    // Trigger emails and wait for them so the serverless function doesn't kill the process prematurely
     const fullOrderData = { ...parsedData, orderId: order.orderId, totalAmount: finalTotal, discountAmount: discountAmount > 0 ? discountAmount : null };
-    sendNewOrderAlertToAdmin(fullOrderData);
-    sendOrderConfirmationToCustomer(fullOrderData);
+    await sendNewOrderAlertToAdmin(fullOrderData);
+    await sendOrderConfirmationToCustomer(fullOrderData);
 
     revalidatePath("/admin/orders");
     
@@ -130,7 +130,7 @@ export async function updateOrderStatus(id: string, status: string) {
     const rows = await sql`UPDATE "Order" SET "status" = ${validStatus}, "updatedAt" = ${now} WHERE "id" = ${id} RETURNING "orderId", "email", "firstName"`;
     
     if (rows.length > 0) {
-      sendOrderStatusUpdate(rows[0].orderId, rows[0].email, rows[0].firstName, validStatus);
+      await sendOrderStatusUpdate(rows[0].orderId, rows[0].email, rows[0].firstName, validStatus);
     }
 
     revalidatePath("/admin/orders");

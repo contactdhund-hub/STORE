@@ -136,7 +136,6 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
               color: selectedColor,
               image: product.images?.[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop"
             });
-            alert("Added to cart!");
           }}
           className={`flex-1 h-[52px] rounded-md flex items-center justify-center gap-3 transition-colors shadow-sm ${product.inStock === false ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-black text-white hover:bg-gray-800'}`}
         >

@@ -3,6 +3,7 @@ import { Playfair_Display, Montserrat } from "next/font/google";
 import "./globals.css";
 import { HeaderWrapper } from "@/components/layout/HeaderWrapper";
 import { FooterWrapper } from "@/components/layout/FooterWrapper";
+import { Analytics } from "@vercel/analytics/next";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <HeaderWrapper />
         <main className="flex-1">{children}</main>
         <FooterWrapper />
+        <Analytics />
       </body>
     </html>
   );
