@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { useCart } from '@/store/useCart';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState, useEffect } from 'react';
-import { getCategories } from '@/actions/category';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function Header() {
   const { items, toggleCart } = useCart();
@@ -80,94 +79,16 @@ export function Header() {
         </div>
       </div>
 
-      {/* Secondary Bar (Categories) */}
-      <div className="w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] border-t border-gray-100 bg-white/95 backdrop-blur-md">
-        <Suspense fallback={<div className="h-[45px] w-full" />}>
-          <CategoryNav />
-        </Suspense>
-      </div>
-
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-lg py-4 px-4 flex flex-col gap-4 z-50">
           <Link href="/track" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-wider text-black border-b border-gray-100 pb-2">
             Track Order
           </Link>
-          <div className="pt-2">
-            <Suspense fallback={null}>
-              <MobileCategoryNav closeMenu={() => setIsMobileMenuOpen(false)} />
-            </Suspense>
-          </div>
+
         </div>
       )}
     </header>
   );
 }
 
-function CategoryNav() {
-  const searchParams = useSearchParams();
-  const currentCategory = searchParams.get('category') || 'ALL';
-  const [categories, setCategories] = useState<string[]>(["ALL", "SKINNY", "SLIM", "LOOSE RELAXED", "STRAIGHT", "BALLOON", "BAGGY", "RELAXED", "CARROT", "SLIM CROPPED", "SKATER"]);
-
-  useEffect(() => {
-    getCategories().then((data) => {
-      if (data && data.length > 0) {
-        setCategories(["ALL", ...data.map(c => c.name)]);
-      }
-    });
-  }, []);
-
-  return (
-    <nav className="flex items-center gap-6 px-4 md:px-6 h-[45px] min-w-max">
-      {categories.map((cat) => {
-        const isActive = currentCategory.toUpperCase() === cat.toUpperCase();
-        return (
-          <Link 
-            key={cat} 
-            href={cat === 'ALL' ? '/' : `/?category=${encodeURIComponent(cat)}`}
-            className={`text-[11px] font-bold tracking-widest whitespace-nowrap transition-colors uppercase pt-1 ${
-              isActive ? "text-black border-b-[2px] border-black pb-[11px]" : "text-gray-500 hover:text-black pb-[13px]"
-            }`}
-          >
-            {cat}
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
-function MobileCategoryNav({ closeMenu }: { closeMenu: () => void }) {
-  const searchParams = useSearchParams();
-  const currentCategory = searchParams.get('category') || 'ALL';
-  const [categories, setCategories] = useState<string[]>(["ALL", "SKINNY", "SLIM", "LOOSE RELAXED", "STRAIGHT", "BALLOON", "BAGGY", "RELAXED", "CARROT", "SLIM CROPPED", "SKATER"]);
-
-  useEffect(() => {
-    getCategories().then((data) => {
-      if (data && data.length > 0) {
-        setCategories(["ALL", ...data.map(c => c.name)]);
-      }
-    });
-  }, []);
-
-  return (
-    <div className="flex flex-col gap-3 max-h-[60vh] overflow-y-auto">
-      <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Categories</h3>
-      {categories.map((cat) => {
-        const isActive = currentCategory.toUpperCase() === cat.toUpperCase();
-        return (
-          <Link 
-            key={cat} 
-            onClick={closeMenu}
-            href={cat === 'ALL' ? '/' : `/?category=${encodeURIComponent(cat)}`}
-            className={`text-sm font-bold tracking-widest uppercase transition-colors ${
-              isActive ? "text-black" : "text-gray-500"
-            }`}
-          >
-            {cat}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
