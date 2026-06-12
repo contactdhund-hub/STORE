@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ProductOptions } from "./ProductOptions";
+import { ProductGallery } from "./ProductGallery";
 import Link from "next/link";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ReviewSection } from "@/components/product/ReviewSection";
@@ -61,7 +62,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
     inStock: rp.inStock !== false
   }));
 
-  const mainImage = product.images[0]?.url || "https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=800&auto=format&fit=crop";
+
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-[1200px]">
@@ -76,34 +77,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 mb-24">
         {/* Left Side: Image Gallery */}
-        <div className="flex flex-col-reverse md:flex-row gap-4">
-          {/* Thumbnails */}
-          <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto hide-scrollbar w-full md:w-20 flex-shrink-0">
-            <div className="w-[70px] h-[90px] border-2 border-black rounded-lg overflow-hidden flex-shrink-0 cursor-pointer p-0.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={mainImage} className="w-full h-full object-cover rounded-md" alt="Thumb" />
-            </div>
-            {product.images.slice(1).map((img: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, idx: number) => (
-              <div key={idx} className="w-[70px] h-[90px] border border-gray-200 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer hover:border-black transition-colors p-0.5">
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                 <img src={img.url} className="w-full h-full object-cover rounded-md" alt="Thumb" />
-              </div>
-            ))}
-          </div>
-
-          {/* Main Image */}
-          <div className="flex-1 bg-[#fcfcfc] rounded-2xl overflow-hidden aspect-[4/5] relative border border-gray-100">
-            <div className="absolute top-5 left-5 bg-black text-white text-[10px] font-bold px-3 py-1.5 rounded-full z-10 tracking-widest">
-              30% OFF
-            </div>
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-             <img 
-               src={mainImage} 
-               alt={product.name} 
-               className="absolute inset-0 w-full h-full object-cover object-center mix-blend-multiply"
-             />
-          </div>
-        </div>
+        <ProductGallery images={product.images} productName={product.name} />
 
         {/* Right Side: Product Buy Box */}
         <div className="flex flex-col py-2">
