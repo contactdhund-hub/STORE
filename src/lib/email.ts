@@ -28,10 +28,13 @@ export const sendNewOrderAlertToAdmin = async (orderData: any /* eslint-disable-
       </div>
     `;
 
+    const text = `New Order Received!\n\nOrder ID: ${orderData.orderId}\nCustomer: ${orderData.firstName} ${orderData.lastName}\nEmail: ${orderData.email}\nPhone: ${orderData.phone}\nTotal Amount: Rs. ${orderData.totalAmount}\n\nLog in to your admin dashboard to view the full details and process this order.`;
+
     await transporter.sendMail({
       from: `"Dhund Store" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER, // Send alert to admin
       subject: `New Sale! ${orderData.orderId} - Rs. ${orderData.totalAmount}`,
+      text,
       html,
     });
   } catch (error) {
@@ -87,10 +90,14 @@ export const sendOrderConfirmationToCustomer = async (orderData: any /* eslint-d
       </div>
     `;
 
+    const itemsText = orderData.items.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `- ${item.name} (Size: ${item.size || 'N/A'}) x${item.quantity}: Rs. ${item.price}`).join('\n');
+    const text = `Thank You For Your Order, ${orderData.firstName}!\n\nWe've received your order and are getting it ready for you. Your order ID is ${orderData.orderId}.\n\nOrder Summary:\n${itemsText}\n\nGrand Total: Rs. ${orderData.totalAmount}\n\nShipping Details:\n${orderData.address}, ${orderData.apartment ? orderData.apartment + ', ' : ''}${orderData.city}, ${orderData.postalCode}\n\nPayment Method: Cash on Delivery\n\nIf you have any questions, simply reply to this email.`;
+
     await transporter.sendMail({
       from: `"Dhund Store" <${process.env.EMAIL_USER}>`,
       to: orderData.email,
       subject: `Order Confirmation - ${orderData.orderId}`,
+      text,
       html,
     });
   } catch (error) {
@@ -117,10 +124,13 @@ export const sendOrderStatusUpdate = async (orderId: string, email: string, firs
       </div>
     `;
 
+    const text = `Order Update\n\nHi ${firstName},\n\nYour order ${orderId} has been updated.\n\nNew Status: ${statusText}\n\nThank you for shopping with us!`;
+
     await transporter.sendMail({
       from: `"Dhund Store" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: `Update on your order ${orderId}`,
+      text,
       html,
     });
   } catch (error) {
