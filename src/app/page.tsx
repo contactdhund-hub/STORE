@@ -96,7 +96,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
           ))}
           {mappedProducts.length === 0 && (
             <div className="col-span-full py-20 text-center text-gray-500 font-sans">
-              No products available. Add some from the admin dashboard!
+              No products found.
             </div>
           )}
         </div>
