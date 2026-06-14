@@ -5,14 +5,21 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
-export async function getUsers() {
+export type User = {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: Date;
+};
+
+export async function getUsers(): Promise<User[]> {
   await requireAdmin();
   const users = await sql`
     SELECT "id", "email", "role", "createdAt"
     FROM "User"
     ORDER BY "createdAt" DESC
   `;
-  return users;
+  return users as unknown as User[];
 }
 
 export async function updateUserRole(id: string, role: string) {
