@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, MessageSquare, Image as ImageIcon, Settings, Ticket, List as ListIcon } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, MessageSquare, Image as ImageIcon, Settings, Ticket, List as ListIcon, Users } from "lucide-react";
 
 export function SidebarNav() {
   const pathname = usePathname();
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Users", href: "/admin/users", icon: Users },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Categories", href: "/admin/categories", icon: ListIcon },

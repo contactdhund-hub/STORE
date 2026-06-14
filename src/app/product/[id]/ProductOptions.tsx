@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, Heart, ShoppingBag, Truck, RefreshCcw } from "lucide-react";
 import { useCart } from "@/store/useCart";
+import { getStoreSettings } from "@/actions/settings";
 
 export function ProductOptions({ product }: { product: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<string | null>(product.sizes?.[0]?.name || null);
   const [selectedColor, setSelectedColor] = useState<{name: string, hex: string} | null>(product.colors?.[0] || null);
   const [quantity, setQuantity] = useState(1);
+  const [shippingConfig, setShippingConfig] = useState({ fee: 250, threshold: 2000 });
+
+  useEffect(() => {
+    getStoreSettings().then(settings => {
+      setShippingConfig({ fee: settings.shippingFee, threshold: settings.freeShippingThreshold });
+    }).catch(console.error);
+  }, []);
 
   const mockOriginalPrice = product.price * 1.42;
 
@@ -155,7 +163,7 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
           </div>
           <div className="pt-0.5">
             <h4 className="text-[11px] font-bold tracking-widest text-[#0a1128] uppercase mb-1">Free Shipping</h4>
-            <p className="text-[11px] text-gray-500">On all orders above Rs. 2,000</p>
+            <p className="text-[11px] text-gray-500">On all orders above Rs. {shippingConfig.threshold.toLocaleString()}</p>
           </div>
         </div>
         <div className="flex gap-4 items-start">
