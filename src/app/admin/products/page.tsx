@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db";
-import { deleteProduct, toggleProductStock } from "@/actions/product";
+import { deleteProduct, updateStockQuantity } from "@/actions/product";
 import { NewProductModal } from "./new-product-modal";
 import { EditProductModal } from "./edit-product-modal";
 import { Search, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
@@ -74,14 +74,21 @@ export default async function AdminProducts() {
                   <td className="px-6 py-4 text-slate-500 text-sm">{product.category}</td>
                   <td className="px-6 py-4 text-slate-900 font-medium text-sm">PKR {product.price.toLocaleString()}</td>
                   <td className="px-6 py-4">
-                    <form action={async () => {
-                      "use server";
-                      await toggleProductStock(product.id, !product.inStock);
-                    }}>
-                      <button type="submit" className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${product.inStock ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'}`}>
-                        {product.inStock ? 'In Stock' : 'Out of Stock'}
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-2">
+                      <form action={async () => {
+                        "use server";
+                        await updateStockQuantity(product.id, Math.max(0, (product.stockQuantity ?? 34) - 1));
+                      }}>
+                        <button type="submit" className="w-6 h-6 flex items-center justify-center border border-slate-200 rounded text-slate-500 hover:bg-slate-50 transition-colors bg-white shadow-sm">-</button>
+                      </form>
+                      <span className="text-sm font-medium text-slate-900 w-6 text-center">{product.stockQuantity ?? 34}</span>
+                      <form action={async () => {
+                        "use server";
+                        await updateStockQuantity(product.id, (product.stockQuantity ?? 34) + 1);
+                      }}>
+                        <button type="submit" className="w-6 h-6 flex items-center justify-center border border-slate-200 rounded text-slate-500 hover:bg-slate-50 transition-colors bg-white shadow-sm">+</button>
+                      </form>
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">

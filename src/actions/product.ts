@@ -21,10 +21,10 @@ export async function deleteProduct(id: string) {
   revalidatePath("/admin/products");
 }
 
-export async function toggleProductStock(id: string, inStock: boolean) {
+export async function updateStockQuantity(id: string, newQuantity: number) {
   await requireAdmin();
   const now = new Date().toISOString();
-  await sql`UPDATE "Product" SET "inStock" = ${inStock}, "updatedAt" = ${now} WHERE "id" = ${id}`;
+  await sql`UPDATE "Product" SET "stockQuantity" = ${Math.max(0, newQuantity)}, "updatedAt" = ${now} WHERE "id" = ${id}`;
   revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath(`/product/${id}`);

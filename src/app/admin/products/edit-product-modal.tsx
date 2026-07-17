@@ -65,6 +65,17 @@ export function EditProductModal({ product }: { product: any }) {
                   <input type="number" name="price" defaultValue={product.price} required disabled={isPending} className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-black focus:border-black transition-colors" />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Original Price (PKR)</label>
+                  <input type="number" name="originalPrice" defaultValue={product.originalPrice || ""} disabled={isPending} placeholder="Optional strike-through price" className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-black focus:border-black transition-colors" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock Quantity</label>
+                  <input type="number" name="stockQuantity" defaultValue={product.stockQuantity ?? 34} required disabled={isPending} className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-black focus:border-black transition-colors" />
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <input type="text" name="category" defaultValue={product.category} required disabled={isPending} placeholder="e.g. Straight Fit | Men" className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-black focus:border-black transition-colors" />
                 </div>
