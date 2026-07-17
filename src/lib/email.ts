@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import path from 'path';
 
 // Configure the transporter
 const transporter = nodemailer.createTransport({
@@ -13,6 +14,9 @@ export const sendNewOrderAlertToAdmin = async (orderData: any /* eslint-disable-
   try {
     const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="cid:logo" alt="Dhund Logo" style="max-width: 150px;" />
+        </div>
         <h2 style="color: #0f172a;">New Order Received! 🚀</h2>
         <p>A new order has been placed on the store.</p>
         
@@ -36,6 +40,11 @@ export const sendNewOrderAlertToAdmin = async (orderData: any /* eslint-disable-
       subject: `New Sale! ${orderData.orderId} - Rs. ${orderData.totalAmount}`,
       text,
       html,
+      attachments: [{
+        filename: 'logo.png',
+        path: path.join(process.cwd(), 'public', 'logo.png'),
+        cid: 'logo'
+      }]
     });
   } catch (error) {
     console.error('Failed to send admin order alert email:', error);
@@ -54,6 +63,9 @@ export const sendOrderConfirmationToCustomer = async (orderData: any /* eslint-d
 
     const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="cid:logo" alt="Dhund Logo" style="max-width: 150px;" />
+        </div>
         <h2 style="color: #0f172a; text-align: center;">Thank You For Your Order!</h2>
         <p>Hi ${orderData.firstName},</p>
         <p>We've received your order and are getting it ready for you. Your order ID is <strong>${orderData.orderId}</strong>.</p>
@@ -87,6 +99,11 @@ export const sendOrderConfirmationToCustomer = async (orderData: any /* eslint-d
           Payment Method: Cash on Delivery<br>
           If you have any questions, simply reply to this email.
         </p>
+        
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+          <img src="cid:logo" alt="Dhund Stamp" style="max-width: 80px; opacity: 0.7;" />
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;">Dhund Unisex Clothing Brand</p>
+        </div>
       </div>
     `;
 
@@ -99,6 +116,11 @@ export const sendOrderConfirmationToCustomer = async (orderData: any /* eslint-d
       subject: `Order Confirmation - ${orderData.orderId}`,
       text,
       html,
+      attachments: [{
+        filename: 'logo.png',
+        path: path.join(process.cwd(), 'public', 'logo.png'),
+        cid: 'logo'
+      }]
     });
   } catch (error) {
     console.error('Failed to send customer confirmation email:', error);
@@ -110,6 +132,9 @@ export const sendOrderStatusUpdate = async (orderId: string, email: string, firs
     const statusText = newStatus === 'OUT_FOR_DELIVERY' ? 'Out for Delivery' : newStatus.replace(/_/g, ' ');
     const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="cid:logo" alt="Dhund Logo" style="max-width: 150px;" />
+        </div>
         <h2 style="color: #0f172a; text-align: center;">Order Update</h2>
         <p>Hi ${firstName},</p>
         <p>Your order <strong>${orderId}</strong> has been updated.</p>
@@ -121,6 +146,11 @@ export const sendOrderStatusUpdate = async (orderId: string, email: string, firs
         <p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 30px;">
           Thank you for shopping with us!
         </p>
+        
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+          <img src="cid:logo" alt="Dhund Stamp" style="max-width: 80px; opacity: 0.7;" />
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;">Dhund Unisex Clothing Brand</p>
+        </div>
       </div>
     `;
 
@@ -132,6 +162,11 @@ export const sendOrderStatusUpdate = async (orderId: string, email: string, firs
       subject: `Update on your order ${orderId}`,
       text,
       html,
+      attachments: [{
+        filename: 'logo.png',
+        path: path.join(process.cwd(), 'public', 'logo.png'),
+        cid: 'logo'
+      }]
     });
   } catch (error) {
     console.error('Failed to send order status update email:', error);

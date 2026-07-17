@@ -5,6 +5,7 @@ import { ProductGallery } from "./ProductGallery";
 import Link from "next/link";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ReviewSection } from "@/components/product/ReviewSection";
+import { checkWishlist } from "@/actions/wishlist";
 
 // Revalidate product pages every 60 seconds (ISR)
 export const revalidate = 60;
@@ -12,8 +13,7 @@ export const revalidate = 60;
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const { id } = await params;
   
-  // Single query: product + images + sizes + colors via JOINs
-  const [productResult, reviews, relatedRaw] = await Promise.all([
+  const [productResult, reviews, relatedRaw, isWishlisted] = await Promise.all([
     sql`
       SELECT 
         p.*,
@@ -43,6 +43,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
       GROUP BY p."id"
       LIMIT 3
     `,
+    checkWishlist(id)
   ]);
 
   if (productResult.length === 0) {
@@ -81,7 +82,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
         {/* Right Side: Product Buy Box */}
         <div className="flex flex-col py-2">
-          <ProductOptions product={product} />
+          <ProductOptions product={product} initialWishlisted={isWishlisted} />
         </div>
       </div>
 

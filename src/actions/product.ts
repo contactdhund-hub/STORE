@@ -9,6 +9,8 @@ const ProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   category: z.string().min(1, "Category is required"),
   price: z.number().positive("Price must be a positive number"),
+  originalPrice: z.number().optional().nullable(),
+  stockQuantity: z.number().int().min(0, "Stock must be 0 or more"),
   description: z.string().optional()
 });
 
@@ -33,10 +35,17 @@ export async function createProduct(formData: FormData) {
   const priceStr = formData.get("price")?.toString();
   const price = priceStr ? parseFloat(priceStr) : NaN;
 
+  const originalPriceStr = formData.get("originalPrice")?.toString();
+  const originalPrice = originalPriceStr ? parseFloat(originalPriceStr) : null;
+  const stockQuantityStr = formData.get("stockQuantity")?.toString();
+  const stockQuantity = stockQuantityStr ? parseInt(stockQuantityStr) : 34;
+
   const parsed = ProductSchema.safeParse({
     name: formData.get("name")?.toString().trim(),
     category: formData.get("category")?.toString().trim(),
     price: price,
+    originalPrice: originalPrice,
+    stockQuantity: stockQuantity,
     description: formData.get("description")?.toString().trim() || ""
   });
 
@@ -44,7 +53,7 @@ export async function createProduct(formData: FormData) {
     throw new Error(parsed.error.issues[0].message);
   }
 
-  const { name, category, price: validPrice, description } = parsed.data;
+  const { name, category, price: validPrice, originalPrice: validOriginalPrice, stockQuantity: validStockQuantity, description } = parsed.data;
 
   const imagesInput = formData.get("images")?.toString() || "";
   const sizesInput = formData.get("sizes")?.toString() || "";
@@ -85,8 +94,8 @@ export async function createProduct(formData: FormData) {
 
   // Create the product
   const [product] = await sql`
-    INSERT INTO "Product" ("id", "name", "description", "price", "category", "createdAt", "updatedAt")
-    VALUES (gen_random_uuid(), ${name}, ${description}, ${validPrice}, ${category}, ${now}, ${now})
+    INSERT INTO "Product" ("id", "name", "description", "price", "originalPrice", "stockQuantity", "category", "createdAt", "updatedAt")
+    VALUES (gen_random_uuid(), ${name}, ${description}, ${validPrice}, ${validOriginalPrice}, ${validStockQuantity}, ${category}, ${now}, ${now})
     RETURNING "id"
   `;
 
@@ -123,10 +132,17 @@ export async function updateProduct(id: string, formData: FormData) {
   const priceStr = formData.get("price")?.toString();
   const price = priceStr ? parseFloat(priceStr) : NaN;
 
+  const originalPriceStr = formData.get("originalPrice")?.toString();
+  const originalPrice = originalPriceStr ? parseFloat(originalPriceStr) : null;
+  const stockQuantityStr = formData.get("stockQuantity")?.toString();
+  const stockQuantity = stockQuantityStr ? parseInt(stockQuantityStr) : 34;
+
   const parsed = ProductSchema.safeParse({
     name: formData.get("name")?.toString().trim(),
     category: formData.get("category")?.toString().trim(),
     price: price,
+    originalPrice: originalPrice,
+    stockQuantity: stockQuantity,
     description: formData.get("description")?.toString().trim() || ""
   });
 
@@ -134,7 +150,7 @@ export async function updateProduct(id: string, formData: FormData) {
     throw new Error(parsed.error.issues[0].message);
   }
 
-  const { name, category, price: validPrice, description } = parsed.data;
+  const { name, category, price: validPrice, originalPrice: validOriginalPrice, stockQuantity: validStockQuantity, description } = parsed.data;
 
   const imagesInput = formData.get("images")?.toString() || "";
   const sizesInput = formData.get("sizes")?.toString() || "";
@@ -175,7 +191,7 @@ export async function updateProduct(id: string, formData: FormData) {
   // Update base product
   await sql`
     UPDATE "Product" 
-    SET "name" = ${name}, "description" = ${description}, "price" = ${validPrice}, "category" = ${category}, "updatedAt" = ${now}
+    SET "name" = ${name}, "description" = ${description}, "price" = ${validPrice}, "originalPrice" = ${validOriginalPrice}, "stockQuantity" = ${validStockQuantity}, "category" = ${category}, "updatedAt" = ${now}
     WHERE "id" = ${id}
   `;
 

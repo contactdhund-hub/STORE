@@ -19,6 +19,8 @@ CREATE TABLE "Product" (
   "name" TEXT NOT NULL,
   "description" TEXT,
   "price" DOUBLE PRECISION NOT NULL,
+  "originalPrice" DOUBLE PRECISION,
+  "stockQuantity" INTEGER NOT NULL DEFAULT 34,
   "category" TEXT NOT NULL,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -96,6 +98,16 @@ CREATE TABLE "Review" (
   CONSTRAINT "Review_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "Review_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE TABLE "Wishlist" (
+  "id" TEXT NOT NULL DEFAULT gen_random_uuid(),
+  "email" TEXT NOT NULL,
+  "productId" TEXT NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Wishlist_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "Wishlist_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX "Wishlist_email_productId_key" ON "Wishlist"("email", "productId");
 
 CREATE TABLE "HeroSlide" (
   "id" TEXT NOT NULL DEFAULT gen_random_uuid(),

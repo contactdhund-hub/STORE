@@ -66,7 +66,12 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="flex flex-col items-center w-full px-2">
         <p className="text-[10px] text-gray-500 font-medium tracking-[0.15em] uppercase mb-1.5 font-sans">{product.category}</p>
         <h3 className="text-[15px] font-serif font-medium text-gray-900 mb-2 truncate w-full group-hover:text-black transition-colors">{product.name}</h3>
-        <p className="text-[14px] font-semibold text-gray-800 mb-3 font-sans">Rs {product.price.toLocaleString()}</p>
+        <div className="flex items-center gap-2 mb-3">
+          <p className="text-[14px] font-semibold text-gray-800 font-sans">Rs {product.price.toLocaleString()}</p>
+          {(product as any).originalPrice && (product as any).originalPrice > product.price && (
+            <p className="text-[12px] text-gray-400 line-through font-sans">Rs {(product as any).originalPrice.toLocaleString()}</p>
+          )}
+        </div>
         
         {/* Color Swatches (if any) */}
         {product.colors && product.colors.length > 0 && (

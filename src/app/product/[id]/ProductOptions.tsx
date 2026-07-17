@@ -4,13 +4,20 @@ import { useState, useEffect } from "react";
 import { Star, Heart, ShoppingBag, Truck, RefreshCcw } from "lucide-react";
 import { useCart } from "@/store/useCart";
 import { getStoreSettings } from "@/actions/settings";
+import { toggleWishlist } from "@/actions/wishlist";
 
-export function ProductOptions({ product }: { product: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
+export function ProductOptions({ product, initialWishlisted = false }: { product: any, initialWishlisted?: boolean /* eslint-disable-line @typescript-eslint/no-explicit-any */ }) {
   const { addItem } = useCart();
   const [selectedSize, setSelectedSize] = useState<string | null>(product.sizes?.[0]?.name || null);
   const [selectedColor, setSelectedColor] = useState<{name: string, hex: string} | null>(product.colors?.[0] || null);
   const [quantity, setQuantity] = useState(1);
   const [shippingConfig, setShippingConfig] = useState({ fee: 250, threshold: 2000 });
+  const [isWishlisted, setIsWishlisted] = useState(initialWishlisted);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
+
+  const reviews = product.reviews || [];
+  const averageRating = reviews.length > 0 ? (reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviews.length).toFixed(1) : "0.0";
 
   useEffect(() => {
     getStoreSettings().then(settings => {
@@ -18,7 +25,16 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
     }).catch(console.error);
   }, []);
 
-  const mockOriginalPrice = product.price * 1.42;
+  const handleWishlist = async () => {
+    setIsWishlistLoading(true);
+    const res = await toggleWishlist(product.id);
+    if (res.success) {
+      setIsWishlisted(res.isWishlisted!);
+    } else {
+      alert(res.error);
+    }
+    setIsWishlistLoading(false);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -38,21 +54,21 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
       
       <div className="flex items-center gap-3 mb-6">
         <div className="flex gap-0.5 text-[#0a1128]">
-           <Star size={14} fill="currentColor" />
-           <Star size={14} fill="currentColor" />
-           <Star size={14} fill="currentColor" />
-           <Star size={14} fill="currentColor" />
-           <Star size={14} fill="currentColor" className="text-gray-200" />
+          {[1,2,3,4,5].map(i => (
+             <Star key={i} size={14} fill={i <= Math.round(Number(averageRating)) ? "currentColor" : "none"} className={i <= Math.round(Number(averageRating)) ? "text-black" : "text-gray-200"} />
+          ))}
         </div>
-        <span className="text-xs font-bold text-gray-900">4.5</span>
+        <span className="text-xs font-bold text-gray-900">{averageRating}</span>
         <span className="text-gray-300">•</span>
-        <a href="#" className="text-[10px] font-bold text-gray-400 hover:text-black underline uppercase tracking-widest">0 Reviews</a>
+        <a href="#reviews" className="text-[10px] font-bold text-gray-400 hover:text-black underline uppercase tracking-widest">{reviews.length} Reviews</a>
       </div>
 
       {/* Price */}
       <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-gray-100">
         <span className="text-3xl font-black text-[#0a1128]">Rs. {product.price.toLocaleString()}</span>
-        <span className="text-[15px] font-bold text-gray-400 line-through">Rs. {mockOriginalPrice.toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+        {product.originalPrice && product.originalPrice > product.price && (
+          <span className="text-[15px] font-bold text-gray-400 line-through">Rs. {product.originalPrice.toLocaleString()}</span>
+        )}
       </div>
 
       {/* Size Selector */}
@@ -60,7 +76,7 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
             <span className="text-[11px] font-bold tracking-widest text-[#0a1128] uppercase">Select Size</span>
-            <a href="#" className="text-[10px] font-bold tracking-widest text-gray-400 uppercase hover:text-black">Size Chart</a>
+            <button onClick={(e) => { e.preventDefault(); setIsSizeChartOpen(true); }} className="text-[10px] font-bold tracking-widest text-gray-400 uppercase hover:text-black">Size Chart</button>
           </div>
           <div className="flex flex-wrap gap-2.5">
             {product.sizes.map((size: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => (
@@ -117,14 +133,14 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
           </button>
           <span className="flex-1 text-center text-[13px] font-bold text-gray-900">{quantity}</span>
           <button 
-            onClick={() => setQuantity(quantity + 1)}
+            onClick={() => setQuantity(Math.min(quantity + 1, product.stockQuantity ?? 34))}
             className="w-10 h-full flex items-center justify-center text-gray-500 hover:text-black"
           >
             +
           </button>
         </div>
         <span className="text-[11px] font-bold tracking-widest text-gray-400 uppercase">
-          In Stock: 34
+          In Stock: {product.stockQuantity ?? 34}
         </span>
       </div>
 
@@ -150,8 +166,12 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
           <ShoppingBag size={16} />
           <span className="text-[11px] font-bold tracking-[0.15em] uppercase">{product.inStock === false ? 'Sold Out' : 'Add to Bag'}</span>
         </button>
-        <button className="w-[52px] h-[52px] border border-gray-200 rounded-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-colors">
-          <Heart size={20} />
+        <button 
+          onClick={handleWishlist}
+          disabled={isWishlistLoading}
+          className="w-[52px] h-[52px] border border-gray-200 rounded-md flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-colors disabled:opacity-50"
+        >
+          <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} className={isWishlisted ? "text-red-500" : ""} />
         </button>
       </div>
 
@@ -176,6 +196,30 @@ export function ProductOptions({ product }: { product: any /* eslint-disable-lin
           </div>
         </div>
       </div>
+
+      {isSizeChartOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setIsSizeChartOpen(false)}>
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 sm:p-8" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Size Guide</h2>
+              <button onClick={() => setIsSizeChartOpen(false)} className="text-gray-400 hover:text-black text-2xl">&times;</button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-gray-50 border-b border-gray-100 uppercase text-[10px] font-bold tracking-widest text-gray-500">
+                  <tr><th className="py-3 px-4">Size</th><th className="py-3 px-4">Chest (in)</th><th className="py-3 px-4">Waist (in)</th></tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr><td className="py-3 px-4 font-bold">S</td><td className="py-3 px-4">34-36</td><td className="py-3 px-4">28-30</td></tr>
+                  <tr><td className="py-3 px-4 font-bold">M</td><td className="py-3 px-4">38-40</td><td className="py-3 px-4">32-34</td></tr>
+                  <tr><td className="py-3 px-4 font-bold">L</td><td className="py-3 px-4">42-44</td><td className="py-3 px-4">36-38</td></tr>
+                  <tr><td className="py-3 px-4 font-bold">XL</td><td className="py-3 px-4">46-48</td><td className="py-3 px-4">40-42</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

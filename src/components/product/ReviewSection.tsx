@@ -56,7 +56,7 @@ export function ReviewSection({ productId, reviews }: ReviewSectionProps) {
   }
 
   return (
-    <div className="mb-24">
+    <div id="reviews" className="mb-24">
       <div className="flex items-center gap-4 mb-8">
         <h2 className="text-xl font-bold text-gray-900 tracking-tight">Customer Reviews</h2>
         <div className="h-px bg-gray-100 flex-1"></div>
