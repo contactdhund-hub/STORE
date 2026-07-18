@@ -5,7 +5,7 @@ import { updateProduct } from "@/actions/product";
 import { Pencil, X, Plus } from "lucide-react";
 import { CldUploadWidget } from "next-cloudinary";
 
-export function EditProductModal({ product }: { product: any }) {
+export function EditProductModal({ product, categories = [] }: { product: any, categories?: string[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>(product.images || []);
   const [isPending, startTransition] = useTransition();
@@ -77,7 +77,12 @@ export function EditProductModal({ product }: { product: any }) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <input type="text" name="category" defaultValue={product.category} required disabled={isPending} placeholder="e.g. Straight Fit | Men" className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-black focus:border-black transition-colors" />
+                  <select name="category" defaultValue={product.category} required disabled={isPending} className="w-full border border-gray-300 rounded-md p-2.5 focus:ring-black focus:border-black transition-colors bg-white">
+                    <option value="" disabled>Select a category</option>
+                    {categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               

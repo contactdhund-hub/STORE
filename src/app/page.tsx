@@ -45,7 +45,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
 
   // Fetch dynamic filter options
   const [categoriesResult, sizesResult, colorsResult] = await Promise.all([
-    sql`SELECT DISTINCT "category" FROM "Product" WHERE "category" IS NOT NULL ORDER BY "category"`,
+    sql`SELECT "name" as "category" FROM "Category" ORDER BY "name" ASC`,
     sql`SELECT DISTINCT "name" FROM "ProductSize" WHERE "name" IS NOT NULL ORDER BY "name"`,
     sql`SELECT DISTINCT "name", "hex" FROM "ProductColor" WHERE "name" IS NOT NULL`
   ]);

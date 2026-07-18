@@ -19,6 +19,10 @@ export default async function AdminProducts() {
     ORDER BY p."createdAt" DESC
   `;
 
+  const categoriesResult = await sql`SELECT "name" FROM "Category" ORDER BY "name" ASC`;
+  const categories = categoriesResult.map((c: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => c.name);
+
+
   return (
     <div className="max-w-[1400px] mx-auto">
       <div className="flex justify-between items-start mb-6">
@@ -26,7 +30,7 @@ export default async function AdminProducts() {
           <h1 className="text-[28px] font-bold text-slate-900 mb-1">Products</h1>
           <p className="text-sm text-slate-500">Manage your product inventory</p>
         </div>
-        <NewProductModal />
+        <NewProductModal categories={categories} />
       </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -92,7 +96,7 @@ export default async function AdminProducts() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <EditProductModal product={product} />
+                      <EditProductModal product={product} categories={categories} />
                       <form action={async () => {
                         "use server";
                         await deleteProduct(product.id);
