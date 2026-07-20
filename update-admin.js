@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 async function run() {
   const sql = neon(process.env.DATABASE_URL);
   try {
-    const newEmail = "dhund.brand@gmail.com";
+    const newEmail = "contact.dhund@gmail.com";
     const newPassword = "Dhund!Admin$2026";
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(newPassword, salt);
