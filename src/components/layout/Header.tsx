@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/store/useCart';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -38,8 +39,7 @@ export function Header() {
             )}
           </button>
           <Link href="/" className="flex items-center">
-            {/* Typography mimicking Outfitters logo style */}
-            <span className="text-2xl sm:text-3xl font-black tracking-wide uppercase text-black" style={{ fontFamily: 'var(--font-montserrat), sans-serif', display: 'inline-block'}}>DHUND</span>
+            <Image src="/logo.png" alt="Dhund" width={120} height={40} className="object-contain" priority />
           </Link>
         </div>
         

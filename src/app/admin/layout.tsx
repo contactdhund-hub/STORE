@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -20,10 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Sidebar */}
       <aside className="hidden md:flex w-[260px] bg-white border-r border-slate-200 flex-col h-screen sticky top-0 shrink-0 z-20">
         <div className="p-5 flex items-center gap-2 border-b border-slate-100">
-          <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center text-white font-bold text-lg">
-            T
-          </div>
-          <span className="font-bold text-xl tracking-tight text-slate-800 uppercase">Dhund</span>
+          <Image src="/logo.png" alt="Dhund" width={100} height={30} className="object-contain" />
         </div>
         
         <SidebarNav />

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Menu, X, LogOut } from "lucide-react";
 import { SidebarNav } from "./sidebar-nav";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export function MobileNav() {
@@ -40,10 +41,7 @@ export function MobileNav() {
           <div className="relative w-[260px] max-w-[80vw] bg-white h-full flex flex-col animate-in slide-in-from-left duration-200">
             <div className="p-5 flex items-center justify-between border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-slate-900 rounded-md flex items-center justify-center text-white font-bold text-lg">
-                  T
-                </div>
-                <span className="font-bold text-xl tracking-tight text-slate-800 uppercase">Dhund</span>
+                <Image src="/logo.png" alt="Dhund" width={100} height={30} className="object-contain" />
               </div>
               <button onClick={() => setOpen(false)} className="p-1 text-slate-500 bg-slate-100 rounded-md">
                 <X size={20} />

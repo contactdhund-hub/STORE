@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
@@ -30,7 +32,7 @@ export function Footer() {
     <footer className="border-t bg-gray-50 mt-12">
       <div className="container mx-auto px-4 py-12 md:py-16 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
-          <h3 className="text-lg font-semibold mb-4 text-black">Dhund</h3>
+          <Image src="/logo.png" alt="Dhund" width={120} height={40} className="object-contain mb-4" />
           <p className="text-sm text-gray-500 mb-6">Premium clothing for the modern individual.</p>
           <div className="flex gap-4">
             <a href="https://www.instagram.com/dhund_official/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-black transition-colors">
