@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { trackOrder } from "@/actions/order";
 import { Search, Package, Truck, CheckCircle, ClipboardCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState("");
@@ -199,9 +200,9 @@ export default function TrackOrderPage() {
             </div>
 
             <div className="mt-10 text-center">
-              <a href="/" className="inline-flex items-center justify-center bg-white border-2 border-black text-black px-8 py-3 rounded-lg font-bold hover:bg-gray-50 transition-colors">
+              <Link href="/" className="inline-flex items-center justify-center bg-white border-2 border-black text-black px-8 py-3 rounded-lg font-bold hover:bg-gray-50 transition-colors">
                 Back to Store
-              </a>
+              </Link>
             </div>
           </div>
         )}

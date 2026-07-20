@@ -84,7 +84,7 @@ function LoginForm() {
             </button>
           </div>
           <div className="text-center text-sm">
-            <span className="text-gray-500">Don't have an account? </span>
+            <span className="text-gray-500">Don&apos;t have an account? </span>
             <Link href="/signup" className="font-medium text-black hover:underline">
               Create one
             </Link>

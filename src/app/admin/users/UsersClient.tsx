@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, ShieldAlert, KeyRound, Trash2 } from "lucide-react";
+import { KeyRound, Trash2 } from "lucide-react";
 import { updateUserRole, updateUserPassword, deleteUser } from "@/actions/user";
 
 type User = {

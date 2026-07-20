@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { sql } from "@/lib/db";
 import LogoutButton from "./LogoutButton";
 
@@ -108,9 +109,9 @@ export default async function ProfilePage() {
       </div>
 
       <div className="mt-12 text-center">
-        <a href="/" className="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-50 hover:text-black transition-colors shadow-sm">
+        <Link href="/" className="inline-flex items-center justify-center bg-white border border-gray-200 text-gray-700 px-6 py-2.5 rounded-lg font-medium hover:bg-gray-50 hover:text-black transition-colors shadow-sm">
           Continue Shopping
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@
 
 import { useCart } from "@/store/useCart";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getStoreSettings } from "@/actions/settings";

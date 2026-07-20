@@ -53,7 +53,7 @@ export const sendNewOrderAlertToAdmin = async (orderData: any /* eslint-disable-
 
 export const sendOrderConfirmationToCustomer = async (orderData: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
   try {
-    let itemsHtml = orderData.items.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `
+    const itemsHtml = orderData.items.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `
       <tr>
         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${item.name} <br><span style="font-size:12px; color:#64748b;">Size: ${item.size || 'N/A'}</span></td>
         <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${item.quantity}</td>
